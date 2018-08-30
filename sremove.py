@@ -29,6 +29,6 @@ if len(sys.argv) == 1:
     print( "Podaj nr joba")
 elif len(sys.argv) == 2:
     sm = SremoveManager()
-    sm.remove(sys.argv[1])
+    sm.sremove(sys.argv[1])
 else:
     print( "cooooo?")

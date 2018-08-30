@@ -24,7 +24,7 @@ class SqueueManager(JobManager):
         tempF.close()
         return data
         
-    def squeuePy(self, deleteFinished = False):
+    def squeuePy(self, deleteFinished = False, jobFilter = "" ):
         system("squeue  &> " + self.tempFilePath)
         sqData = self.readSqueueLog()
         runningData = self.readRunningCsv()
@@ -38,10 +38,15 @@ class SqueueManager(JobManager):
         print( "Joby uruchomione lub oczekujace:")
     
         for jobId in jobsInSq:
+            if jobFilter != "" and not jobFilter in runningData[jobId]:
+                continue
+            
             self.prettyPrint(runningData[jobId], sqData[jobId])
         
         print( "Joby ukonczone")
         for jobId in jobsNotInSq:
+            if jobFilter != "" and not jobFilter in runningData[jobId]:
+                continue
             self.prettyPrint(runningData[jobId])
     
         if deleteFinished:
@@ -80,6 +85,9 @@ if len(sys.argv) == 1:
     sm.squeuePy()
 elif len(sys.argv) == 2:
     sm = SqueueManager()
-    sm.squeuePy(True)
+    if sys.argv[1] == "-r":
+        sm.squeuePy(deleteFinished = True)
+    else:
+        sm.squeuePy(jobFilter = sys.argv[1])
 else:
     print( "cooooo?")
