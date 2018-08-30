@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Aug 30 12:13:54 2018
+
+@author: michal
+"""
+import sys
+from jobManager import JobManager
+
+class SremoveManager(JobManager):
+    def sremove( self, jobId ):
+        jobs = self.readRunningCsv()
+        
+        self.initRunningCsv()
+        removedJobs = []
+        csv = open(self.runningCsvPath, 'a')
+        for key in jobs:
+            if not key == jobId:
+                csv.write(jobs[key])
+            else:
+                removedJobs.append(key)
+        csv.close()
+        
+        if removedJobs:
+            self.append2Finished(jobs, removedJobs)
+            
+if len(sys.argv) == 1:
+    print( "Podaj nr joba")
+elif len(sys.argv) == 2:
+    sm = SremoveManager()
+    sm.remove(sys.argv[1])
+else:
+    print( "cooooo?")

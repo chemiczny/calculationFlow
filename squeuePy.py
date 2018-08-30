@@ -5,26 +5,13 @@ Created on Fri Aug  3 16:17:39 2018
 
 @author: michal
 """
-from os.path import isdir, join, isfile, expanduser
-from os import mkdir, system
+from os import system
 from time import time
 import datetime
 import sys
 from jobManager import JobManager
 
-class SqueueManager(JobManager):
-    def readRunningCsv(self):
-        csv = open(self.runningCsvPath, 'r')
-        data = {}
-        line = csv.readline()
-        line = csv.readline()
-        while line:
-            data[ line.split()[0]  ] = line
-            line = csv.readline()
-        csv.close()
-    
-        return data
-        
+class SqueueManager(JobManager):        
     def readSqueueLog(self):
         tempF = open(self.tempFilePath, 'r')
         line =tempF.readline()
@@ -55,12 +42,11 @@ class SqueueManager(JobManager):
         
         print( "Joby ukonczone")
         for jobId in jobsNotInSq:
-            #print runningData[jobId]
             self.prettyPrint(runningData[jobId])
     
         if deleteFinished:
             self.cleanRunning(runningData, jobsInSq)
-            self.updateFinished(runningData, jobsNotInSq)
+            self.append2Finished(runningData, jobsNotInSq)
     
     def prettyPrint( self, myData, sqData = False ):
         myDataS = myData.split()
@@ -80,19 +66,12 @@ class SqueueManager(JobManager):
                 timeNow = time()
                 timeDiff = timeNow - timeStart
                 print( "Waiting:\t"+str(datetime.timedelta(seconds=timeDiff)))
-    
         print( 70*"#")
     
     def cleanRunning( self, data, runningKeys):
         self.initRunningCsv()
         csv = open(self.runningCsvPath, 'a')
         for key in runningKeys:
-            csv.write(data[key])
-        csv.close()
-    
-    def updateFinished(self, data, finishedKeys):
-        csv = open(self.finishedCsvPath, 'a+')
-        for key in finishedKeys:
             csv.write(data[key])
         csv.close()
 

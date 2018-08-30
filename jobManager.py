@@ -30,5 +30,20 @@ class JobManager:
         csv.write("JobId\tTimeSbatch\tdirRun\tfileRun\tComment\n")
         csv.close()
         
-        
-jm = JobManager()
+    def readRunningCsv(self):
+        csv = open(self.runningCsvPath, 'r')
+        data = {}
+        line = csv.readline()
+        line = csv.readline()
+        while line:
+            data[ line.split()[0]  ] = line
+            line = csv.readline()
+        csv.close()
+    
+        return data
+    
+    def append2Finished(self, data, finishedKeys):
+        csv = open(self.finishedCsvPath, 'a+')
+        for key in finishedKeys:
+            csv.write(data[key])
+        csv.close()
