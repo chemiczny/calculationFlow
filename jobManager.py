@@ -19,6 +19,8 @@ class JobManager:
         self.runningCsvPath = join(jobManagerDir, runningCsv)
         tempFile = "fatality.log"
         self.tempFilePath = join(jobManagerDir, tempFile)
+        finishedCsv = "finished.csv"
+        self.finishedCsv = join(jobManagerDir, finishedCsv)
         
         if not isfile(self.runningCsvPath):
             self.initRunningCsv()
