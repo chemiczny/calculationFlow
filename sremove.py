@@ -9,14 +9,14 @@ import sys
 from jobManager import JobManager
 
 class SremoveManager(JobManager):
-    def sremove( self, jobId ):
+    def sremove( self, jobIds ):
         jobs = self.readRunningCsv()
         
         self.initRunningCsv()
         removedJobs = []
         csv = open(self.runningCsvPath, 'a')
         for key in jobs:
-            if not key == jobId:
+            if not key in jobIds:
                 csv.write(jobs[key])
             else:
                 removedJobs.append(key)
@@ -29,6 +29,7 @@ if len(sys.argv) == 1:
     print( "Podaj nr joba")
 elif len(sys.argv) == 2:
     sm = SremoveManager()
-    sm.sremove(sys.argv[1])
+    sm.sremove( [ sys.argv[1] ] )
 else:
-    print( "cooooo?")
+    sm = SremoveManager()
+    sm.sremove( sys.argv[1:] )
