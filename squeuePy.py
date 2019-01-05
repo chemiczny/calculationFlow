@@ -59,7 +59,7 @@ class SqueueManager(JobManager):
         print( "Running Dir\t" + myDataS[2])
         print( "Script file:\t" + myDataS[3])
         if myDataS[4] != "None":
-            print( "Comment\t\t"+myData[4])
+            print( "Comment\t\t"+myDataS[4])
     
         if sqData:
             sqS = sqData.split()
@@ -71,6 +71,8 @@ class SqueueManager(JobManager):
                 timeNow = time()
                 timeDiff = timeNow - timeStart
                 print( "Waiting:\t"+str(datetime.timedelta(seconds=timeDiff)))
+                
+        
         print( 70*"#")
     
     def cleanRunning( self, data, runningKeys):
