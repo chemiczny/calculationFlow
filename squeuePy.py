@@ -54,6 +54,7 @@ class SqueueManager(JobManager):
             self.append2Finished(runningData, jobsNotInSq)
     
     def prettyPrint( self, myData, sqData = False ):
+        myData = myData.replace("\n", "")
         myDataS = myData.split("\t")
         print( "jobID\t\t"+myDataS[0])
         print( "Running Dir\t" + myDataS[2])
