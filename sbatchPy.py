@@ -21,8 +21,11 @@ class SbatchManager(JobManager):
         line =tempF.readline()
         print( line[:-1])
         tempF.close()
-        jobID = line.split()[-1]
-        return jobID
+        if "Submitted" in line:
+            jobID = line.split()[-1]
+            return jobID
+        else:
+            return None
         
     def sbatchPy(self, jobFile, comment = None):
         actualTime = time()
@@ -31,15 +34,17 @@ class SbatchManager(JobManager):
         system("sbatch "+jobFile+" &> " + self.tempFilePath)
         jobID = self.readJobID()
         
-        self.appendRunningCsv(jobID, actualTime, actualDir, jobFile, comment2write)
+        if jobID:
+            self.appendRunningCsv(jobID, actualTime, actualDir, jobFile, comment2write)
 
-if len(sys.argv) == 1:
-    print( "Podaj zadanie")
-elif len(sys.argv) == 2:
-    sm = SbatchManager()
-    sm.sbatchPy(sys.argv[1])
-elif len(sys.argv) == 3:
-    sm = SbatchManager()
-    sm.sbatchPy(sys.argv[1], sys.argv[2])
-else:
-    print( "cooooo?")
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        print( "Podaj zadanie")
+    elif len(sys.argv) == 2:
+        sm = SbatchManager()
+        sm.sbatchPy(sys.argv[1])
+    elif len(sys.argv) == 3:
+        sm = SbatchManager()
+        sm.sbatchPy(sys.argv[1], sys.argv[2])
+    else:
+        print( "cooooo?")

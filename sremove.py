@@ -25,11 +25,12 @@ class SremoveManager(JobManager):
         if removedJobs:
             self.append2Finished(jobs, removedJobs)
             
-if len(sys.argv) == 1:
-    print( "Podaj nr joba")
-elif len(sys.argv) == 2:
-    sm = SremoveManager()
-    sm.sremove( [ sys.argv[1] ] )
-else:
-    sm = SremoveManager()
-    sm.sremove( sys.argv[1:] )
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        print( "Podaj nr joba")
+    elif len(sys.argv) == 2:
+        sm = SremoveManager()
+        sm.sremove( [ sys.argv[1] ] )
+    else:
+        sm = SremoveManager()
+        sm.sremove( sys.argv[1:] )

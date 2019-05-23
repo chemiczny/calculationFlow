@@ -24,7 +24,7 @@ class SqueueManager(JobManager):
         tempF.close()
         return data
         
-    def squeuePy(self, deleteFinished = False, jobFilter = "" ):
+    def squeuePy(self, deleteFinished = False, jobFilter = "" , json = False):
         system("squeue  &> " + self.tempFilePath)
         sqData = self.readSqueueLog()
         runningData = self.readRunningCsv()
@@ -35,23 +35,67 @@ class SqueueManager(JobManager):
         jobsInSq.sort()
         jobsNotInSq.sort()
     
-        print( "Joby uruchomione lub oczekujace:")
-    
-        for jobId in jobsInSq:
-            if jobFilter != "" and not jobFilter in runningData[jobId]:
-                continue
-            
-            self.prettyPrint(runningData[jobId], sqData[jobId])
+        if not json:
+            print( "Joby uruchomione lub oczekujace:")
         
-        print( "Joby ukonczone")
-        for jobId in jobsNotInSq:
-            if jobFilter != "" and not jobFilter in runningData[jobId]:
-                continue
-            self.prettyPrint(runningData[jobId])
+            for jobId in jobsInSq:
+                if jobFilter != "" and not jobFilter in runningData[jobId]:
+                    continue
+                
+                self.prettyPrint(runningData[jobId], sqData[jobId])
+            
+            print( "Joby ukonczone")
+            for jobId in jobsNotInSq:
+                if jobFilter != "" and not jobFilter in runningData[jobId]:
+                    continue
+                self.prettyPrint(runningData[jobId])
+        else:
+            toPrint = {}
+            toPrint["RunningOrWaiting"] = []
+            for jobId in jobsInSq:
+                if jobFilter != "" and not jobFilter in runningData[jobId]:
+                    continue
+                toPrint["RunningOrWaiting"].append( self.toDictionary(runningData[jobId], sqData[jobId]) )
+                
+            toPrint["Finished"] = []
+            for jobId in jobsNotInSq:
+                if jobFilter != "" and not jobFilter in runningData[jobId]:
+                    continue
+                
+                toPrint["Finished"].append(self.toDictionary(runningData[jobId]))
+                
+            print toPrint
     
         if deleteFinished:
             self.cleanRunning(runningData, jobsInSq)
             self.append2Finished(runningData, jobsNotInSq)
+    
+    def toDictionary(self, myData, sqData = False):
+        result = {}
+        
+        myData = myData.replace("\n", "")
+        myDataS = myData.split("\t")
+        result ["jobID" ]  = myDataS[0]
+        result ["RunningDir"] = myDataS[2]
+        result ["Script file"] = myDataS[3]
+        result ["Comment"] = myDataS[4]
+    
+        if sqData:
+            sqS = sqData.split()
+            result [ "Status" ] = sqS[4]
+            result [ "Time" ]  = sqS[5]
+            result [ "Partition" ] = sqS[1]
+            if "PD" in sqS[4]:
+                timeStart = float(myDataS[1])
+                timeNow = time()
+                timeDiff = timeNow - timeStart
+                result [ "Time" ]  = str(datetime.timedelta(seconds=timeDiff))
+        else:
+            result [ "Status" ] = "Finished"
+            result [ "Time" ]  = "UNK"
+            result [ "Partition" ] = "UNK"
+                
+        return result
     
     def prettyPrint( self, myData, sqData = False ):
         myData = myData.replace("\n", "")
@@ -83,14 +127,17 @@ class SqueueManager(JobManager):
             csv.write(data[key])
         csv.close()
 
-if len(sys.argv) == 1:
-    sm = SqueueManager()
-    sm.squeuePy()
-elif len(sys.argv) == 2:
-    sm = SqueueManager()
-    if sys.argv[1] == "-r":
-        sm.squeuePy(deleteFinished = True)
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        sm = SqueueManager()
+        sm.squeuePy()
+    elif len(sys.argv) == 2:
+        sm = SqueueManager()
+        if sys.argv[1] == "-r":
+            sm.squeuePy(deleteFinished = True)
+        elif sys.argv[1] == "-json":
+            sm.squeuePy(json = True)
+        else:
+            sm.squeuePy(jobFilter = sys.argv[1])
     else:
-        sm.squeuePy(jobFilter = sys.argv[1])
-else:
-    print( "cooooo?")
+        print( "cooooo?")
