@@ -44,14 +44,14 @@ class GraphManager(JobManager):
         
     def nextIteration(self):
         sm = SqueueManager()
-        results = sm.squeuePy(json = True)
+        results = sm.squeuePy(json = True, printResult = False)
         
         for graph in self.graphs:
             finishedNodes = []
             for node in graph.nodes:
                 data = graph.nodes[node]["data"]
                 
-                if data.status == "running":
+                if data.status == "running"  :
                     if self.jobIsFinished(data, results):
                         slurmOk, comment = data.verifySlurm()
                         if not slurmOk:
@@ -63,14 +63,21 @@ class GraphManager(JobManager):
                             print("Error in logfile ", node)
                             continue
                         
+                        print("Find finished node: ")
+                        print(node)
                         finishedNodes.append(node)
                         graph.nodes[node]["data"].status = "finished"
+                elif data.status == "finished":
+                    finishedNodes.append(node)
                
             children2run =set([])
             for node in finishedNodes:
                 children2run |= set( graph.successors(node ))
                 
             for children in children2run:
+                if graph.nodes[children]["data"].status != "waitingForParent":
+                    continue
+
                 parents = list(graph.predecessors(children))
                 
                 allParentsFinished = True
@@ -102,7 +109,12 @@ class GraphManager(JobManager):
                     
         
     def runNode(self, graph, node, parent):
-        graph.nodes[node]["data"].generateFromParent(parent)
+        print("generating new node: ")
+        print(children)
+        print(" from parent: ")
+        print(graph.nodes[parent]["data"].logFile )
+        
+        graph.nodes[node]["data"].generateFromParent(graph.nodes[parent]["data"])
         graph.nodes[node]["data"].run()
         
     def buildGraphDirectories(self, graph):

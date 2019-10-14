@@ -48,7 +48,7 @@ class JobNode:
         self.id = sm.sbatchPy(self.slurmFile, "Controlled by graph")
         
         chdir(lastDir)
-        self.status = "Running"
+        self.status = "running"
     
 #    def restart(self):
 #        pass
@@ -56,9 +56,9 @@ class JobNode:
 #    def generateSlurmFile(self):
 #        pass
     
-class GaussianNode:
+class GaussianNode(JobNode):
     def __init__(self, logFile, path):
-        JobNode.__init__(logFile, path)
+        JobNode.__init__(self,logFile, path)
         self.routeSection = None
         self.additionalSection = None
         self.skipParentAdditionalSection = True
@@ -141,7 +141,8 @@ class GaussianNode:
         return imaginaryFreqs == self.noOfExcpectedImaginaryFrequetions
         
     def writeSlurmScript( self, filename, processors, time):
-        slurmFile = open(filename, 'w')
+        fullPath = join(self.path, filename)
+        slurmFile = open(fullPath, 'w')
         slurmFile.write("#!/bin/env bash\n")
         slurmFile.write("#SBATCH --nodes=1\n")
         slurmFile.write("#SBATCH --cpus-per-task="+str(processors)+"\n")
@@ -162,7 +163,7 @@ class GaussianNode:
         lastCoords = getLastCoordsFromLog(parentLog)
         writeNewInput(join(parent.path, parentInp), lastCoords, join(self.path, self.inputFile), 
                       self.routeSection, self.skipParentAdditionalSection, self.additionalSection)
-        writeNewInput(self, "run.slurm", self.processors, self.time)
+        self.writeSlurmScript("run.slurm", self.processors, self.time)
         
         
         

@@ -16,50 +16,52 @@ from graphManager import GraphManager
 
 def addSPcorrections(graph, node):
     newDir = join(node, "TZ")
-    newNode = GaussianNode("tz.inp", newDir)
-    newNode.routeSection = """
-%Chk=checkp.chk
+    newNode = GaussianNode("tz.log", newDir)
+    newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P B3LYP/6-311+G(2d,2p)
 # nosymm
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
-# Units(Ang,Deg)"""
+# Units(Ang,Deg)
+"""
     newNode.verification = "SP"
     graph.add_node(newDir, data = newNode)
     graph.add_edge(node, newDir)
     
     newDir = join(node, "PCM")
-    newNode = GaussianNode("pcm.inp", newDir)
-    newNode.routeSection = """
-%Chk=checkp.chk
+    newNode = GaussianNode("pcm.log", newDir)
+    newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P B3LYP/6-31G(d,p)
 # nosymm SCRF(Solvent=Generic, Read)
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
-# Units(Ang,Deg)"""
+# Units(Ang,Deg)
+"""
     newNode.additionalSection = """
 stoichiometry=H2O1
 solventname=Water2
 eps=4
-epsinf=1.77556"""
+epsinf=1.77556
+"""
     newNode.verification = "SP"
     graph.add_node(newDir, data = newNode)
     graph.add_edge(node, newDir)
     
     newDir = join(node, "TZ_PCM")
-    newNode = GaussianNode("tz_pcm.inp", newDir)
-    newNode.routeSection = """
-%Chk=checkp.chk
+    newNode = GaussianNode("tz_pcm.log", newDir)
+    newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P B3LYP/6-311+G(2d,2p)
 # nosymm
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
-# Units(Ang,Deg)"""
+# Units(Ang,Deg)
+"""
     newNode.additionalSection = """
 stoichiometry=H2O1
 solventname=Water2
 eps=4
-epsinf=1.77556"""
+epsinf=1.77556
+"""
     newNode.verification = "SP"
     graph.add_node(newDir, data = newNode)
     graph.add_edge(node, newDir)
@@ -74,10 +76,12 @@ if __name__ == "__main__":
         gaussianFile = getGaussianInpFromSlurmFile(slurmFile)
         gaussianLog = gaussianFile.replace("inp", "log")
         
-        newNode = GaussianNode(gaussianFile, currentDir)
+        newNode = GaussianNode(gaussianLog, currentDir)
         newNode.status = "finished"
         jobGraph.add_node( currentDir , data = newNode )
         
+        addSPcorrections(jobGraph, currentDir)
+
         sm = GraphManager()
         sm.buildGraphDirectories(jobGraph)
         sm.graphs.append(jobGraph)

@@ -126,6 +126,7 @@ def writeNewInput ( oldInput, newCoords, newInputName, routeSection = "", skipAf
             
     if additional:
         destiny.write(additional)
+        destiny.write("\n\n")
     
     destiny.close()
     oldFile.close()

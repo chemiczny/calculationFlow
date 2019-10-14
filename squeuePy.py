@@ -24,7 +24,7 @@ class SqueueManager(JobManager):
         tempF.close()
         return data
         
-    def squeuePy(self, deleteFinished = False, jobFilter = "" , json = False):
+    def squeuePy(self, deleteFinished = False, jobFilter = "" , json = False, printResult = True):
         system("squeue  &> " + self.tempFilePath)
         sqData = self.readSqueueLog()
         runningData = self.readRunningCsv()
@@ -65,7 +65,8 @@ class SqueueManager(JobManager):
                 
                 toPrint["Finished"].append(self.toDictionary(runningData[jobId]))
                 
-            print toPrint
+            if printResult:
+                print( toPrint)
             result = toPrint
     
         if deleteFinished:
