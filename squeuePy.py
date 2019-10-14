@@ -35,6 +35,7 @@ class SqueueManager(JobManager):
         jobsInSq.sort()
         jobsNotInSq.sort()
     
+        result = {}
         if not json:
             print( "Joby uruchomione lub oczekujace:")
         
@@ -65,10 +66,13 @@ class SqueueManager(JobManager):
                 toPrint["Finished"].append(self.toDictionary(runningData[jobId]))
                 
             print toPrint
+            result = toPrint
     
         if deleteFinished:
             self.cleanRunning(runningData, jobsInSq)
             self.append2Finished(runningData, jobsNotInSq)
+            
+        return result
     
     def toDictionary(self, myData, sqData = False):
         result = {}

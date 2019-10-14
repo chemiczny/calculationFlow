@@ -36,6 +36,9 @@ class SbatchManager(JobManager):
         
         if jobID:
             self.appendRunningCsv(jobID, actualTime, actualDir, jobFile, comment2write)
+            return jobID
+        else:
+            return None
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
