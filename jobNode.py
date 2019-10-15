@@ -67,6 +67,31 @@ class GaussianNode(JobNode):
         self.noOfExcpectedImaginaryFrequetions = -1
         self.processors = 24
         self.time = "72:00:00"
+        self.readResults = False
+        self.results = []
+        
+    def analyseLog(self):
+        if not self.readResults:
+            return
+        
+        lf = open(join(self.path, self.logFile))
+        
+        line = lf.readline()
+        energy = ""
+        zpe = ""
+        while line:
+            if "E(" in line:
+                energy = line
+            elif "Zero-point correction=" in line:
+                zpe = line
+        
+        lf.close()
+        
+        if energy:
+            self.results.append(energy.strip())
+            
+        if zpe:
+            self.results.append(zpe.strip())
         
     def verifyLog(self):
         if self.verification == "SP":

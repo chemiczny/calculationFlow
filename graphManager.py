@@ -5,13 +5,12 @@ Created on Mon Oct 14 13:25:14 2019
 
 @author: michal
 """
-from os.path import join, isfile
+from os.path import join, isfile, isdir
 from jobManager import JobManager
 from squeuePy import SqueueManager
 import pickle
 import sys
-from os import getcwd, mkdir
-from os.path import join, isdir
+from os import mkdir
 import networkx as nx
 
 class GraphManager(JobManager):
@@ -23,13 +22,13 @@ class GraphManager(JobManager):
         if not isfile(self.pickledGraphs):
             self.initGraphs()
             
-        self.graphs = []
+        self.graphs = {}
         self.loadGraphs()
         
         
     def initGraphs(self):
         file2dump = open(self.pickledGraphs, 'wb')
-        pickle.dump([], file2dump)
+        pickle.dump({}, file2dump)
         file2dump.close()
         
     def loadGraphs(self):
@@ -42,11 +41,29 @@ class GraphManager(JobManager):
         pickle.dump(self.graphs, file2dump)
         file2dump.close()
         
+    def isGraphHere(self, path):
+        for graphKey in self.graphs:
+            graph = self.graphs[graphKey]
+            
+            if path in graph.nodes:
+                return graph
+        else:
+            return False
+        
+    def addGraph(self, graph, path):
+        self.graphs[path] = graph
+        return True
+    
+    def deleteGraph(self, path):
+        del self.graphs[path]
+        
+        
     def nextIteration(self):
         sm = SqueueManager()
         results = sm.squeuePy(json = True, printResult = False)
         
-        for graph in self.graphs:
+        for graphKey in self.graphs:
+            graph = self.graphs[graphKey]
             finishedNodes = []
             for node in graph.nodes:
                 data = graph.nodes[node]["data"]
@@ -66,9 +83,12 @@ class GraphManager(JobManager):
                         print("Find finished node: ")
                         print(node)
                         finishedNodes.append(node)
-                        graph.nodes[node]["data"].status = "finished"
+                        graph.nodes[node]["data"].analyseLog()
+                        graph.nodes[node]["data"].status = "examined"
                 elif data.status == "finished":
                     finishedNodes.append(node)
+                    graph.nodes[node]["data"].analyseLog()
+                    graph.nodes[node]["data"].status = "examined"
                
             children2run =set([])
             for node in finishedNodes:
@@ -82,7 +102,7 @@ class GraphManager(JobManager):
                 
                 allParentsFinished = True
                 for p in parents:
-                    if not graph.nodes[p]["data"].status == "finished":
+                    if not graph.nodes[p]["data"].status == "examined":
                         allParentsFinished = False
                         
                 if not allParentsFinished:
@@ -110,7 +130,7 @@ class GraphManager(JobManager):
         
     def runNode(self, graph, node, parent):
         print("generating new node: ")
-        print(children)
+        print(node)
         print(" from parent: ")
         print(graph.nodes[parent]["data"].logFile )
         
