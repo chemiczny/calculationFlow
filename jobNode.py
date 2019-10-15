@@ -107,7 +107,7 @@ class GaussianNode(JobNode):
             raise Exception("Not implemented node verification")
     
     def verifySP(self):
-        lf = open(self.logFile)
+        lf = open(join(self.path, self.logFile))
         
         lf.seek(-100)
         
