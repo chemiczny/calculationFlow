@@ -62,3 +62,19 @@ epsinf=1.77556
     newNode.readResults = True
     graph.add_node(newDir, data = newNode)
     graph.add_edge(node, newDir)
+    
+def addZPE(graph, node, expectedImaginaryFreqs = 0):
+    newDir = join(node, "freq")
+    newNode = GaussianNode("freq.inp", newDir)
+    newNode.verification = "Freq"
+    newNode.readResults = True
+    newNode.routeSection = """%Chk=checkp.chk
+%Mem=100GB
+#P B3LYP/6-31G(d,p)
+# Freq nosymm
+# Gfinput IOP(6/7=3)  Pop=full  Density  Test 
+# Units(Ang,Deg)
+"""
+    newNode.noOfExcpectedImaginaryFrequetions = expectedImaginaryFreqs
+    graph.add_node(newDir, data = newNode)
+    graph.add_edge(node, newDir)

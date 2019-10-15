@@ -108,7 +108,13 @@ class GraphManager(JobManager):
                 if not allParentsFinished:
                     continue
                 
-                self.runNode(graph, children, parents[0])
+                if parents:
+                    self.runNode(graph, children, parents[0])
+                else:
+                    print("running new node: ")
+                    print(node)
+                    print("from existing files")
+                    graph.nodes[children]["data"].run()
                 
         self.saveGraphs()
                 

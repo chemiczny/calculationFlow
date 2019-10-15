@@ -38,7 +38,6 @@ if __name__ == "__main__":
             result = sm.addGraph(jobGraph, currentDir)
             if result:
                 sm.buildGraphDirectories(jobGraph)
-                sm.addGraph(jobGraph, currentDir)
                 sm.saveGraphs()
             print("Created new graph")
         else:

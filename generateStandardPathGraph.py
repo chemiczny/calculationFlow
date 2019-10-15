@@ -7,120 +7,155 @@ Created on Fri Oct 11 12:57:02 2019
 """
 
 import networkx as nx
-from os import getcwd, mkdir
-from os.path import join, isdir
+from os import getcwd
+from os.path import join
 from jobNode import GaussianNode
 from parsers import getGaussianInpFromSlurmFile
+from graphGenerators import addSPcorrections, addZPE
+from graphManager import GraphManager
+import sys
 
-def addSPcorrections(graph, node):
-    newDir = join(node, "TZ")
-    newNode = GaussianNode("tz.inp", newDir)
-    newNode.routeSection = """
-%Chk=checkp.chk
-%Mem=100GB
-#P B3LYP/6-311+G(2d,2p)
-# nosymm
-# Gfinput IOP(6/7=3)  Pop=full  Density  Test 
-# Units(Ang,Deg)"""
-    newNode.verification = "SP"
-    graph.add_node(newDir, data = newNode)
-    graph.add_edge(node, newDir)
+def generateTSsearchFromGuess(slurmFile):
+    jobGraph = nx.DiGraph()
+    currentDir = getcwd()
+    gaussianFile = getGaussianInpFromSlurmFile(slurmFile)
     
-    newDir = join(node, "PCM")
-    newNode = GaussianNode("pcm.inp", newDir)
-    newNode.routeSection = """
-%Chk=checkp.chk
+    newNode = GaussianNode(gaussianFile, currentDir)
+    newNode.verification = "Opt"
+    jobGraph.add_node( currentDir , data = newNode )
+    
+    newDir = join(currentDir, "freq")
+    newNode = GaussianNode("freq.inp", newDir)
+    newNode.verification = "SP"
+    
+    newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P B3LYP/6-31G(d,p)
-# nosymm SCRF(Solvent=Generic, Read)
+# Freq nosymm
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
-# Units(Ang,Deg)"""
-    newNode.additionalSection = """
-stoichiometry=H2O1
-solventname=Water2
-eps=4
-epsinf=1.77556"""
-    newNode.verification = "SP"
-    graph.add_node(newDir, data = newNode)
-    graph.add_edge(node, newDir)
+# Units(Ang,Deg)
+"""
+    jobGraph.add_node(newDir, data = newNode)
+    jobGraph.add_edge(currentDir, newDir)
     
-    newDir = join(node, "TZ_PCM")
-    newNode = GaussianNode("tz_pcm.inp", newDir)
-    newNode.routeSection = """
-%Chk=checkp.chk
+    lastDir, newDir = newDir, join(newDir, "ts_opt")
+    newNode = GaussianNode("ts_opt.inp", newDir)
+    newNode.verification = "Opt"
+    newNode.copyChk = True
+    newNode.readResults = True
+    newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
-#P B3LYP/6-311+G(2d,2p)
-# nosymm
+#P B3LYP/6-31G(d,p)
+# Opt(TS,ReadFC,noeigentest) nosymm
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
-# Units(Ang,Deg)"""
-    newNode.additionalSection = """
-stoichiometry=H2O1
-solventname=Water2
-eps=4
-epsinf=1.77556"""
+# Units(Ang,Deg)
+"""
+    jobGraph.add_node(newDir, data = newNode)
+    jobGraph.add_edge(lastDir, newDir)
+    
+    lastDir, newDir = newDir, join(currentDir, "freq_verify")
+    newNode = GaussianNode("freq_verify.inp", newDir)
+    newNode.verification = "Freq"
+    newNode.noOfExcpectedImaginaryFrequetions = 1
+    newNode.readResults = True
+    newNode.routeSection = """%Chk=checkp.chk
+%Mem=100GB
+#P B3LYP/6-31G(d,p)
+# Freq nosymm
+# Gfinput IOP(6/7=3)  Pop=full  Density  Test 
+# Units(Ang,Deg)
+"""
+    jobGraph.add_node(newDir, data = newNode)
+    jobGraph.add_edge(lastDir, newDir)
+    
+    addSPcorrections(jobGraph, newDir)
+    
+    optimizedTs = newDir
+    
+    newDir = join(currentDir, "irc_reverse")
+    newNode = GaussianNode("irc_reverse.inp", newDir)
     newNode.verification = "SP"
-    graph.add_node(newDir, data = newNode)
-    graph.add_edge(node, newDir)
+    newNode.copyChk = True
+    newNode.routeSection = """%Chk=checkp.chk
+%Mem=100GB
+#P B3LYP/6-31G(d,p)
+# IRC(RCFC, Reverse) nosymm
+# Gfinput IOP(6/7=3)  Pop=full  Density  Test 
+# Units(Ang,Deg)
+"""
+    jobGraph.add_node(newDir, data = newNode)
+    jobGraph.add_edge(optimizedTs, newDir)
+    
+    lastDir , newDir = newDir,  join(newDir, "opt")
+    newNode = GaussianNode("opt.inp", newDir)
+    newNode.verification = "Opt"
+    newNode.readResults = True
+    newNode.routeSection = """%Chk=checkp.chk
+%Mem=100GB
+#P B3LYP/6-31G(d,p)
+# Opt nosymm
+# Gfinput IOP(6/7=3)  Pop=full  Density  Test 
+# Units(Ang,Deg)
+"""
+    jobGraph.add_node(newDir, data = newNode)
+    jobGraph.add_edge(lastDir, newDir)
+    
+    addSPcorrections(jobGraph, newDir)
+    addZPE(jobGraph, newDir)
+    
+    newDir = join(currentDir, "irc_forward")
+    newNode = GaussianNode("irc_forward.inp", newDir)
+    newNode.verification = "SP"
+    newNode.copyChk = True
+    newNode.routeSection = """%Chk=checkp.chk
+%Mem=100GB
+#P B3LYP/6-31G(d,p)
+# IRC(RCFC, Forward) nosymm
+# Gfinput IOP(6/7=3)  Pop=full  Density  Test 
+# Units(Ang,Deg)
+"""
+    jobGraph.add_node(newDir, data = newNode)
+    jobGraph.add_edge(optimizedTs, newDir)
+    
+    lastDir , newDir = newDir,  join(newDir, "opt")
+    newNode = GaussianNode("opt.inp", None)
+    newNode.verification = "Opt"
+    newNode.readResults = True
+    newNode.routeSection = """%Chk=checkp.chk
+%Mem=100GB
+#P B3LYP/6-31G(d,p)
+# Opt nosymm
+# Gfinput IOP(6/7=3)  Pop=full  Density  Test 
+# Units(Ang,Deg)
+"""
+    jobGraph.add_node(newDir, data = newNode)
+    jobGraph.add_edge(lastDir, newDir)
+    
+    addSPcorrections(jobGraph, newDir)
+    addZPE(jobGraph, newDir)
+    return jobGraph
 
-def addZPE(graph, node):
-    newDir = join(node, "freq")
-    newNode = GaussianNode("freq.inp", newDir)
-    graph.add_node(newDir, data = newNode)
-    graph.add_edge(node, newDir)
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        print("Usage: graphs slurmFile")
+    elif len(sys.argv) == 2:
+        slurmFile = sys.argv[1]
+        currentDir = getcwd()
+        
+        sm = GraphManager()
+        graph = sm.isGraphHere(currentDir)
+        if not graph:
+            newGraph = generateTSsearchFromGuess(slurmFile)
+    
             
-
-jobGraph = nx.DiGraph()
-slurmFile = "test.slurm"
-currentDir = getcwd()
-gaussianFile = getGaussianInpFromSlurmFile(slurmFile)
-
-
-newNode = GaussianNode(gaussianFile, currentDir)
-jobGraph.add_node( currentDir , data = newNode )
-
-newDir = join(currentDir, "freq")
-newNode = GaussianNode("freq.inp", newDir)
-jobGraph.add_node(newDir, data = newNode)
-jobGraph.add_edge(currentDir, newDir)
-
-lastDir, newDir = newDir, join(newDir, "ts_opt")
-newNode = GaussianNode("ts_opt.inp", newDir)
-jobGraph.add_node(newDir, data = newNode)
-jobGraph.add_edge(lastDir, newDir)
-
-lastDir, newDir = newDir, join(currentDir, "freq_verify")
-newNode = GaussianNode("freq_verify.inp", newDir)
-jobGraph.add_node(newDir, data = newNode)
-jobGraph.add_edge(lastDir, newDir)
-
-addSPcorrections(jobGraph, newDir)
-
-optimizedTs = newDir
-
-newDir = join(currentDir, "irc_reverse")
-newNode = GaussianNode("irc_reverse.inp", newDir)
-jobGraph.add_node(newDir, data = newNode)
-jobGraph.add_edge(optimizedTs, newDir)
-
-lastDir , newDir = newDir,  join(newDir, "opt")
-newNode = GaussianNode("opt.inp", newDir)
-jobGraph.add_node(newDir, data = newNode)
-jobGraph.add_edge(lastDir, newDir)
-
-addSPcorrections(jobGraph, newDir)
-addZPE(jobGraph, newDir)
-
-newDir = join(currentDir, "irc_forward")
-newNode = GaussianNode("irc_forward.inp", newDir)
-jobGraph.add_node(newDir, data = newNode)
-jobGraph.add_edge(optimizedTs, newDir)
-
-lastDir , newDir = newDir,  join(newDir, "opt")
-newNode = GaussianNode("opt.inp", None)
-jobGraph.add_node(newDir, data = newNode)
-jobGraph.add_edge(lastDir, newDir)
-
-addSPcorrections(jobGraph, newDir)
-addZPE(jobGraph, newDir)
-
-#buildGraphDirectories(jobGraph)
+            result = sm.addGraph(newGraph, currentDir)
+            if result:
+                sm.buildGraphDirectories(newGraph)
+                sm.saveGraphs()
+            print("Created new graph")
+        else:
+            print("Cannot create more than one graph in the same directory")
+            
+        
+    else:
+        print( "cooooo?")

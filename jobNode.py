@@ -9,6 +9,7 @@ from os import getcwd, chdir
 from sbatchPy import SbatchManager
 from parsers import getLastCoordsFromLog, writeNewInput, getFreqs
 from os.path import join
+from shutil import copyfile
 
 class JobNode:
     def __init__(self, logFile, path):
@@ -67,7 +68,9 @@ class GaussianNode(JobNode):
         self.noOfExcpectedImaginaryFrequetions = -1
         self.processors = 24
         self.time = "72:00:00"
+        self.chk = "checkp.chk"
         self.readResults = False
+        self.copyChk = False
         self.results = []
         
     def analyseLog(self):
@@ -189,6 +192,9 @@ class GaussianNode(JobNode):
         writeNewInput(join(parent.path, parentInp), lastCoords, join(self.path, self.inputFile), 
                       self.routeSection, self.skipParentAdditionalSection, self.additionalSection)
         self.writeSlurmScript("run.slurm", self.processors, self.time)
+        
+        if self.copyChk:
+            copyfile(join(parent.path, parent.chk), join(self.path, self.chk))
         
         
         
