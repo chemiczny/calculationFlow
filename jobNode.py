@@ -12,8 +12,8 @@ from os.path import join
 from shutil import copyfile
 
 class JobNode:
-    def __init__(self, logFile, path):
-        self.logFile = logFile
+    def __init__(self, inputFile, path):
+        self.inputFile = inputFile
         self.id = None
         self.path = path
         self.done = False
@@ -58,12 +58,12 @@ class JobNode:
 #        pass
     
 class GaussianNode(JobNode):
-    def __init__(self, logFile, path):
-        JobNode.__init__(self,logFile, path)
+    def __init__(self, inputFile, path):
+        JobNode.__init__(self,inputFile, path)
         self.routeSection = None
         self.additionalSection = None
         self.skipParentAdditionalSection = True
-        self.inputFile = self.logFile.replace("log", "inp")
+        self.logFile = self.inputFile.split(".")[0]+".log"
         self.verification = None
         self.noOfExcpectedImaginaryFrequetions = -1
         self.processors = 24

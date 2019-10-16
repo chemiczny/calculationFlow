@@ -10,7 +10,7 @@ from jobNode import GaussianNode
 
 def addSPcorrections(graph, node):
     newDir = join(node, "TZ")
-    newNode = GaussianNode("tz.log", newDir)
+    newNode = GaussianNode("tz.inp", newDir)
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P B3LYP/6-311+G(2d,2p)
@@ -24,7 +24,7 @@ def addSPcorrections(graph, node):
     graph.add_edge(node, newDir)
     
     newDir = join(node, "PCM")
-    newNode = GaussianNode("pcm.log", newDir)
+    newNode = GaussianNode("pcm.inp", newDir)
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P B3LYP/6-31G(d,p)
@@ -44,7 +44,7 @@ epsinf=1.77556
     graph.add_edge(node, newDir)
     
     newDir = join(node, "TZ_PCM")
-    newNode = GaussianNode("tz_pcm.log", newDir)
+    newNode = GaussianNode("tz_pcm.inp", newDir)
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P B3LYP/6-311+G(2d,2p)
