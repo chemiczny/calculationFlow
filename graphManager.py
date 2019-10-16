@@ -8,6 +8,7 @@ Created on Mon Oct 14 13:25:14 2019
 from os.path import join, isfile, isdir
 from jobManager import JobManager
 from squeuePy import SqueueManager
+from copy import deepcopy
 import pickle
 import sys
 from os import mkdir
@@ -49,6 +50,38 @@ class GraphManager(JobManager):
                 return graph
         else:
             return False
+        
+    def restartNode(self, path):
+        graph = self.isGraphHere(path)
+        
+        if not graph:
+            print("There is no graph here!")
+            return
+        
+        data = graph.nodes[path]["data"]
+        
+        newNodeData = deepcopy(data)
+        newNodeData.path = join( newNodeData.path, "restart" )
+        newNodeData.skipParentAdditionalSection = False
+        newNodeData.additionalSection = ""
+        newNodeData.status = "waitingForParent"
+        newNodeData.id = None
+        newNode = newNodeData.path
+        
+        data.status = "finished"
+        data.readResults = False
+        
+        graph.add_node(newNodeData.path, data = newNodeData)
+        
+        successors = list(graph.successors(path))
+        for s in successors:
+            graph.add_edge(newNode, s)
+            graph.remove_edge(path, s)
+            
+        graph.add_edge(path, newNode)
+        self.buildGraphDirectories(graph)
+        
+        print("Graph has been modified")
         
     def addGraph(self, graph, path):
         self.graphs[path] = graph
@@ -157,5 +190,10 @@ if __name__ == "__main__":
     elif len(sys.argv) == 2:
         sm = GraphManager()
         sm.nextIteration()
+    elif len(sys.argv) == 3:
+        sm = GraphManager()
+        path = sys.argv[-1]
+        sm.restartNode(path)
+        sm.saveGraphs()
     else:
         print( "cooooo?")
