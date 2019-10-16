@@ -188,7 +188,7 @@ class GaussianNode(JobNode):
         parentLog = parent.logFile
         parentInp = parent.inputFile
         
-        lastCoords = getLastCoordsFromLog(parentLog)
+        lastCoords = getLastCoordsFromLog(join(parent.path, parentLog))
         writeNewInput(join(parent.path, parentInp), lastCoords, join(self.path, self.inputFile), 
                       self.routeSection, self.skipParentAdditionalSection, self.additionalSection)
         self.writeSlurmScript("run.slurm", self.processors, self.time)
