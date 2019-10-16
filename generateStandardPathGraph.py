@@ -22,6 +22,7 @@ def generateTSsearchFromGuess(slurmFile):
     
     newNode = GaussianNode(gaussianFile, currentDir)
     newNode.verification = "Opt"
+    newNode.slurmFile = slurmFile
     jobGraph.add_node( currentDir , data = newNode )
     
     newDir = join(currentDir, "freq")
