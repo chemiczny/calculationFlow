@@ -122,7 +122,7 @@ class GraphManager(JobManager):
                 print("nodes state:")
                 graph = self.graphs[graphKey]
                 for node in graph.nodes:
-                    print(node, graph.nodes[node]["data".status])
+                    print(node, graph.nodes[node]["data"].status)
             print(70*"#")
     
     def printResults(self, path):
