@@ -24,6 +24,22 @@ def getGaussianInpFromSlurmFile(slurmFile):
     sf.close()
     return inpName
 
+def getCheckpointNameFromInput(inputFile):
+    sf = open(inputFile)
+    
+    line = sf.readline()
+    chkName = None
+    while line:
+        if "%CHK" in line.upper():
+            lineSpl = line.split("=")
+            chkName = lineSpl[-1]
+            
+        
+        line = sf.readline()
+    
+    sf.close()
+    return chkName
+
 def getLastCoordsFromLog(logFile):
     gFile = open(logFile, 'r' )
     

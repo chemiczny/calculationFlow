@@ -7,8 +7,8 @@ Created on Fri Oct 11 14:08:06 2019
 """
 from os import getcwd, chdir
 from sbatchPy import SbatchManager
-from parsers import getLastCoordsFromLog, writeNewInput, getFreqs
-from os.path import join
+from parsers import getLastCoordsFromLog, writeNewInput, getFreqs, getCheckpointNameFromInput
+from os.path import join, isfile
 from shutil import copyfile
 
 class JobNode:
@@ -69,10 +69,17 @@ class GaussianNode(JobNode):
         self.processors = 24
         self.time = "72:00:00"
         self.chk = "checkp.chk"
+        
         self.readResults = False
         self.copyChk = False
         self.results = []
         self.software = "Gaussian"
+        
+    def readChk(self):
+        if isfile( join( self.path, self.inputFile )):
+            chkName = getCheckpointNameFromInput( join(self.path, self.inputName) )
+            if chkName:
+                self.chk = chkName
         
     def rebuild(self, inputFile, path, slurmFile):
         self.inputFile = inputFile
@@ -203,6 +210,8 @@ class GaussianNode(JobNode):
         lastCoords = getLastCoordsFromLog(join(parent.path, parentLog))
         writeNewInput(join(parent.path, parentInp), lastCoords, join(self.path, self.inputFile), 
                       self.routeSection, self.skipParentAdditionalSection, self.additionalSection)
+        
+        self.readChk()
         self.writeSlurmScript("run.slurm", self.processors, self.time)
         
         if self.copyChk:
