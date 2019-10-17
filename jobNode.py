@@ -86,6 +86,7 @@ class GaussianNode(JobNode):
         self.path = path
         self.logFile = self.inputFile.split(".")[0]+".log"
         self.slurmFile = slurmFile
+        self.readChk()
         
     def analyseLog(self):
         if not self.readResults:
