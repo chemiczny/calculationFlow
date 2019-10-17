@@ -102,6 +102,15 @@ class GraphManager(JobManager):
             del self.graphs[path]
         else:
             print("Invalid graphKey: ", path)
+            
+    def saveGraph(self, path, destiny):
+        if not path in self.graphs:
+            print("Invalid graphKey: ", path)
+            return
+        
+        file2dump = open(destiny, 'wb')
+        pickle.dump(self.graphs[path], file2dump)
+        file2dump.close()
         
     def graphIteration(self, graphKey, results):
         graph = self.graphs[graphKey]
@@ -185,7 +194,7 @@ class GraphManager(JobManager):
                         self.runNode(graph, children, bestParent)
             else:
                 print("running new node: ")
-                print(node)
+                print(children)
                 print("from existing files")
                 graph.nodes[children]["data"].run()
         
