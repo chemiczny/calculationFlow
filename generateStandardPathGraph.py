@@ -138,7 +138,7 @@ def generateTSsearchFromGuess(slurmFile):
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-        print("Usage: graphs slurmFile")
+        print("Usage: initTSsearchFromGuess slurmFile")
     elif len(sys.argv) == 2:
         slurmFile = sys.argv[1]
         currentDir = getcwd()

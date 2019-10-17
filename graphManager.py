@@ -51,6 +51,8 @@ class GraphManager(JobManager):
         else:
             return False
         
+#    def setCurrentNodeAsFinished
+        
     def restartNode(self, path):
         graph = self.isGraphHere(path)
         
@@ -90,93 +92,105 @@ class GraphManager(JobManager):
     def deleteGraph(self, path):
         del self.graphs[path]
         
-        
-    def nextIteration(self):
-        sm = SqueueManager()
-        results = sm.squeuePy(json = True, printResult = False)
-        
-        for graphKey in self.graphs:
-            graph = self.graphs[graphKey]
-            finishedNodes = []
-            for node in graph.nodes:
-                data = graph.nodes[node]["data"]
-                
-                if data.status == "running"  :
-                    if self.jobIsFinished(data, results):
-                        slurmOk, comment = data.verifySlurm()
-                        if not slurmOk:
-                            print("Slurm error ", node, comment)
-                            continue
-                        
+    def graphIteration(self, graphKey, results):
+        graph = self.graphs[graphKey]
+        finishedNodes = []
+        for node in graph.nodes:
+            data = graph.nodes[node]["data"]
+            
+            if data.status == "running"  :
+                if self.jobIsFinished(data, results):
+                    slurmOk, comment = data.verifySlurm()
+                    if not slurmOk:
+                        print("Slurm error ", node, comment)
+                        continue
+                    
+                    try:
                         logOk = data.verifyLog()
                         if not logOk:
                             print("Error in logfile ", node)
                             continue
-                        
-                        print("Find finished node: ")
-                        print(node)
-                        finishedNodes.append(node)
-                        graph.nodes[node]["data"].analyseLog()
-                        graph.nodes[node]["data"].status = "examined"
-                elif data.status == "finished":
+                    except:
+                        print("Cannot verify log file: "+node)
+                    
+                    print("Find finished node: ")
+                    print(node)
                     finishedNodes.append(node)
                     graph.nodes[node]["data"].analyseLog()
                     graph.nodes[node]["data"].status = "examined"
-               
-            children2run =set([])
-            for node in finishedNodes:
-                children2run |= set( graph.successors(node ))
-                
-                
-            if not children2run:
-                if graph.nodes[graphKey]["data"].status == "waitingForParent":
-                       children2run.add(graphKey)
+            elif data.status == "finished":
+                finishedNodes.append(node)
+                graph.nodes[node]["data"].analyseLog()
+                graph.nodes[node]["data"].status = "examined"
+           
+        children2run =set([])
+        for node in finishedNodes:
+            children2run |= set( graph.successors(node ))
+            
+            
+        if not children2run:
+            if graph.nodes[graphKey]["data"].status == "waitingForParent":
+                   children2run.add(graphKey)
 
-                
-            for children in children2run:
-                if graph.nodes[children]["data"].status != "waitingForParent":
-                    continue
+            
+        for children in children2run:
+            if graph.nodes[children]["data"].status != "waitingForParent":
+                continue
 
-                parents = list(graph.predecessors(children))
-                
-                allParentsFinished = True
-                for p in parents:
-                    if not graph.nodes[p]["data"].status == "examined":
-                        allParentsFinished = False
-                        
-                if not allParentsFinished:
-                    continue
-                
-                if parents:
-                    if len(parents) == 1:
-                        self.runNode(graph, children, parents[0])
-                    else:
-                        bestParent = None
-                        highestEnergy = None
-                        
-                        for p in parents:
-                            parentData = graph.nodes[p]["data"]
-                            if not parentData.valueForSorting:
-                                oldReadingValue = parentData.readResults
-                                parentData.readResults = True
-                                
-                                parentData.analyseLog()
-                                parentData.readResults = oldReadingValue
-                                
-                            if not bestParent:
-                                bestParent = p
-                                highestEnergy = parentData.valueForSorting
-                                
-                            elif parentData.valueForSorting > highestEnergy:
-                                bestParent = p
-                                highestEnergy = parentData.valueForSorting
-                                
-                    self.runNode(graph, children, bestParent)
+            parents = list(graph.predecessors(children))
+            
+            allParentsFinished = True
+            for p in parents:
+                if not graph.nodes[p]["data"].status == "examined":
+                    allParentsFinished = False
+                    
+            if not allParentsFinished:
+                continue
+            
+            if parents:
+                if len(parents) == 1:
+                    self.runNode(graph, children, parents[0])
                 else:
-                    print("running new node: ")
-                    print(node)
-                    print("from existing files")
-                    graph.nodes[children]["data"].run()
+                    bestParent = None
+                    highestEnergy = None
+                    
+                    for p in parents:
+                        parentData = graph.nodes[p]["data"]
+                        if not parentData.valueForSorting:
+                            oldReadingValue = parentData.readResults
+                            parentData.readResults = True
+                            
+                            parentData.analyseLog()
+                            parentData.readResults = oldReadingValue
+                            
+                        if not bestParent:
+                            bestParent = p
+                            highestEnergy = parentData.valueForSorting
+                            
+                        elif parentData.valueForSorting > highestEnergy:
+                            bestParent = p
+                            highestEnergy = parentData.valueForSorting
+                            
+                        self.runNode(graph, children, bestParent)
+            else:
+                print("running new node: ")
+                print(node)
+                print("from existing files")
+                graph.nodes[children]["data"].run()
+        
+    def nextIteration(self, selectedGraph = ""):
+        sm = SqueueManager()
+        results = sm.squeuePy(json = True, printResult = False)
+        
+        if not selectedGraph:
+            for graphKey in self.graphs:
+                self.graphIteration(graphKey, results)
+        else:
+            if not selectedGraph in self.graphs:
+                print("Wrong graph key!")
+                return
+            
+            self.graphIteration(selectedGraph, results)
                 
         self.saveGraphs()
                 
@@ -215,14 +229,15 @@ class GraphManager(JobManager):
         
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-        print("Usage: graphs run")
+        print("Usage: graphRun next graphKey [optional]")
     elif len(sys.argv) == 2:
         sm = GraphManager()
         sm.nextIteration()
     elif len(sys.argv) == 3:
         sm = GraphManager()
         path = sys.argv[-1]
-        sm.restartNode(path)
+        sm.nextIteration(path)
+#        sm.restartNode(path)
         sm.saveGraphs()
     else:
         print( "cooooo?")
