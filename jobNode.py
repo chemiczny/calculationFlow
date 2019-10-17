@@ -74,6 +74,12 @@ class GaussianNode(JobNode):
         self.results = []
         self.software = "Gaussian"
         
+    def rebuild(self, inputFile, path, slurmFile):
+        self.inputFile = inputFile
+        self.path = path
+        self.logFile = self.inputFile.split(".")[0]+".log"
+        self.slurmFile = slurmFile
+        
     def analyseLog(self):
         if not self.readResults:
             return

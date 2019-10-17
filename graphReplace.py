@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Oct 17 18:30:01 2019
+
+@author: michal
+"""
+
+from graphManager import GraphManager
+import sys
+from os.path import basename, dirname, abspath
+from parsers import getGaussianInpFromSlurmFile
+
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        print("Usage: graphReplace node slurmFile")
+    elif len(sys.argv) == 3:
+        slurmFile = sys.argv[2]
+        inputFile = getGaussianInpFromSlurmFile(slurmFile)
+        newNode = dirname(abspath(slurmFile))
+        
+        slurmFile = basename(slurmFile)
+        oldNode = sys.argv[1]
+        
+        sm = GraphManager()
+        sm.insertPath2node(oldNode, newNode, slurmFile, inputFile)
+        sm.saveGraphs()
+            
+        
+    else:
+        print( "cooooo?")
