@@ -20,3 +20,4 @@ print("alias graphTSsearchFromGuess='python3 "+cwd+"/generateStandardPathGraph.p
 print("alias graphTSsearchFromScan='python3 "+cwd+"/findTSfromScan.py'")
 print("alias graphRun='python3 "+cwd+"/graphManager.py'")
 print("alias graphRemove='python3 "+cwd+"/graphRemove.py'")
+print("alias graphStatus='python3 "+cwd+"/graphStatus.py'")
