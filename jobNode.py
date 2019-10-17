@@ -77,7 +77,7 @@ class GaussianNode(JobNode):
         
     def readChk(self):
         if isfile( join( self.path, self.inputFile )):
-            chkName = getCheckpointNameFromInput( join(self.path, self.inputName) )
+            chkName = getCheckpointNameFromInput( join(self.path, self.inputFile) )
             if chkName:
                 self.chk = chkName
         
