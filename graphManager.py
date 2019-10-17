@@ -148,7 +148,30 @@ class GraphManager(JobManager):
                     continue
                 
                 if parents:
-                    self.runNode(graph, children, parents[0])
+                    if len(parents) == 1:
+                        self.runNode(graph, children, parents[0])
+                    else:
+                        bestParent = None
+                        highestEnergy = None
+                        
+                        for p in parents:
+                            parentData = graph.nodes[p]["data"]
+                            if not parentData.valueForSorting:
+                                oldReadingValue = parentData.readResults
+                                parentData.readResults = True
+                                
+                                parentData.analyseLog()
+                                parentData.readResults = oldReadingValue
+                                
+                            if not bestParent:
+                                bestParent = p
+                                highestEnergy = parentData.valueForSorting
+                                
+                            elif parentData.valueForSorting > highestEnergy:
+                                bestParent = p
+                                highestEnergy = parentData.valueForSorting
+                                
+                    self.runNode(graph, children, bestParent)
                 else:
                     print("running new node: ")
                     print(node)

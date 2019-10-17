@@ -8,12 +8,12 @@ Created on Tue Oct 15 12:55:34 2019
 from os.path import join
 from jobNode import GaussianNode
 
-def addSPcorrections(graph, node):
-    newDir = join(node, "TZ")
+def addSPcorrections(graph, node, theoryLow = "B3LYP/6-31G(d,p)", theoryHigh = "B3LYP/6-311+G(2d,2p)", basename = ""):
+    newDir = join(node, basename+"TZ")
     newNode = GaussianNode("tz.inp", newDir)
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
-#P B3LYP/6-311+G(2d,2p)
+#P """+theoryHigh+"""
 # nosymm
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
@@ -23,11 +23,11 @@ def addSPcorrections(graph, node):
     graph.add_node(newDir, data = newNode)
     graph.add_edge(node, newDir)
     
-    newDir = join(node, "PCM")
+    newDir = join(node, basename+"PCM")
     newNode = GaussianNode("pcm.inp", newDir)
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
-#P B3LYP/6-31G(d,p)
+#P """+theoryLow+"""
 # nosymm SCRF(Solvent=Generic, Read)
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
@@ -43,11 +43,11 @@ epsinf=1.77556
     graph.add_node(newDir, data = newNode)
     graph.add_edge(node, newDir)
     
-    newDir = join(node, "TZ_PCM")
+    newDir = join(node, basename+"TZ_PCM")
     newNode = GaussianNode("tz_pcm.inp", newDir)
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
-#P B3LYP/6-311+G(2d,2p)
+#P """+theoryHigh+"""
 # nosymm
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
@@ -63,14 +63,14 @@ epsinf=1.77556
     graph.add_node(newDir, data = newNode)
     graph.add_edge(node, newDir)
     
-def addZPE(graph, node, expectedImaginaryFreqs = 0):
-    newDir = join(node, "freq")
+def addZPE(graph, node, expectedImaginaryFreqs = 0, theory = "B3LYP/6-31G(d,p)", basename = ""):
+    newDir = join(node, basename + "freq")
     newNode = GaussianNode("freq.inp", newDir)
     newNode.verification = "Freq"
     newNode.readResults = True
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
-#P B3LYP/6-31G(d,p)
+#P """+theory+"""
 # Freq nosymm
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)

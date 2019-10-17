@@ -16,10 +16,10 @@ class JobNode:
         self.inputFile = inputFile
         self.id = None
         self.path = path
-        self.done = False
         self.slurmFile = None
-        self.id = None
         self.status = "waitingForParent"
+        self.valueForSorting = None
+        self.software = None
         
     def verifySlurm(self):
         slurmFile = join( self.path, "slurm-"+str(self.id)+".out" )
@@ -72,6 +72,7 @@ class GaussianNode(JobNode):
         self.readResults = False
         self.copyChk = False
         self.results = []
+        self.software = "Gaussian"
         
     def analyseLog(self):
         if not self.readResults:
@@ -92,6 +93,7 @@ class GaussianNode(JobNode):
         
         if energy:
             self.results.append(energy.strip())
+            self.valueForSorting = float( energy.split()[4] )
             
         if zpe:
             self.results.append(zpe.strip())
