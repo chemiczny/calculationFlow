@@ -89,8 +89,19 @@ class GraphManager(JobManager):
         self.graphs[path] = graph
         return True
     
+    def printStatus(self):
+        print(70*"#")
+        print("Actual graphs status:")
+        print("No of graphs: ", len(self.graphs))
+        for graphKey in self.graphs:
+            print("Graph key: ", graphKey)
+            print(70*"#")
+    
     def deleteGraph(self, path):
-        del self.graphs[path]
+        if path in self.graphs:
+            del self.graphs[path]
+        else:
+            print("Invalid graphKey: ", path)
         
     def graphIteration(self, graphKey, results):
         graph = self.graphs[graphKey]
