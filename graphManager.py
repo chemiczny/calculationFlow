@@ -136,12 +136,15 @@ class GraphManager(JobManager):
         file2dump.close()
         
     def graphIteration(self, graphKey, results):
+        print("Analysing graph: ")
+        print(graphKey)
         graph = self.graphs[graphKey]
         finishedNodes = []
         for node in graph.nodes:
             data = graph.nodes[node]["data"]
             
             if data.status == "running"  :
+
                 if self.jobIsFinished(data, results):
                     slurmOk, comment = data.verifySlurm()
                     if not slurmOk:
@@ -162,9 +165,12 @@ class GraphManager(JobManager):
                     graph.nodes[node]["data"].analyseLog()
                     graph.nodes[node]["data"].status = "examined"
             elif data.status == "finished":
+                print("Find finished node: ")
+                print(node)
                 finishedNodes.append(node)
                 graph.nodes[node]["data"].analyseLog()
                 graph.nodes[node]["data"].status = "examined"
+                print("Node has been examined")
            
         children2run =set([])
         for node in finishedNodes:

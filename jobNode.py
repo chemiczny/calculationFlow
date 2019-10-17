@@ -94,6 +94,8 @@ class GaussianNode(JobNode):
                 energy = line
             elif "Zero-point correction=" in line:
                 zpe = line
+
+            line = lf.readline()
         
         lf.close()
         
@@ -117,7 +119,8 @@ class GaussianNode(JobNode):
     def verifySP(self):
         lf = open(join(self.path, self.logFile))
         
-        lf.seek(-100,2)
+        # lf.seek(0, 2)
+        # lf.seek(-100,2)
         
         result = False
         line = lf.readline()
@@ -147,7 +150,8 @@ class GaussianNode(JobNode):
             lf.close()
             return result
         
-        lf.seek(-100, 2)
+        # lf.seek(0, 2)
+        # lf.seek(-100, 2)
         
         result = False
         line = lf.readline()
