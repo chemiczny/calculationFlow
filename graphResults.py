@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Oct 17 16:57:10 2019
+Created on Thu Oct 17 23:24:04 2019
 
 @author: michal
 """
@@ -10,10 +10,9 @@ from graphManager import GraphManager
 import sys
 
 if __name__ == "__main__":
-    if len(sys.argv) == 1:
-        sm = GraphManager()
-        sm.printStatus()
+    if len(sys.argv) != 2:
+        print("Usage: graphResults graphKey")
     else:
+        graphKey = sys.argv[1]
         sm = GraphManager()
-        sm.printStatus(True)
-    
+        sm.printResults(graphKey)

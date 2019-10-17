@@ -112,13 +112,46 @@ class GraphManager(JobManager):
             graph.nodes[p]["data"].status = "examined"
         
     
-    def printStatus(self):
+    def printStatus(self, long = False):
         print(70*"#")
         print("Actual graphs status:")
         print("No of graphs: ", len(self.graphs))
         for graphKey in self.graphs:
             print("Graph key: ", graphKey)
+            if long:
+                print("nodes state:")
+                graph = self.graphs[graphKey]
+                for node in graph.nodes:
+                    print(node, graph.nodes[node]["data".status])
             print(70*"#")
+    
+    def printResults(self, path):
+        print(70*"#")
+        if not path in self.graphs:
+            print("Invalid key!")
+            return
+        
+        graph = self.graphs[path]
+        
+        for node in graph.nodes:
+            data = graph.nodes[node]["data"]
+            if not data.readResults:
+                continue
+            
+            if data.status != "examined":
+                print(node)
+                print("Result not available, node status: ", data.status)
+                continue
+            
+            if not data.results:
+                data.analyseLog()
+                
+            print(node)
+            for res in data.results:
+                print(res)
+                
+                
+        print(70*"#")
     
     def deleteGraph(self, path):
         if path in self.graphs:
