@@ -32,7 +32,7 @@ def getCheckpointNameFromInput(inputFile):
     while line:
         if "%CHK" in line.upper():
             lineSpl = line.split("=")
-            chkName = lineSpl[-1]
+            chkName = lineSpl[-1].strip()
             break
         
         line = sf.readline()
