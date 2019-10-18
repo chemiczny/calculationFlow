@@ -13,7 +13,8 @@ from parsers import getGaussianInpFromSlurmFile
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-        print("Usage: graphReplace node slurmFile")
+        print("Usage: graphReplace node slurmFile status [default: waitingForParent]")
+        print("Possible status: waitingForParent, running, finished, examined")
     elif len(sys.argv) == 3:
         slurmFile = sys.argv[2]
         inputFile = getGaussianInpFromSlurmFile(slurmFile)

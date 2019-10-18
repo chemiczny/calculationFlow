@@ -96,6 +96,10 @@ class GraphManager(JobManager):
             print(oldPath)
             return
         
+        if not status in [ "waitingForParent" , "running" , "finished" , "examined" ]:
+            print("Invalid status!")
+            return
+        
         data = graph.nodes[oldPath]["data"]
         data.rebuild(inputFile, newPath, slurmFile)
         
@@ -106,17 +110,32 @@ class GraphManager(JobManager):
         #     print("something wrong with this node:")
         #     print(newPath)
             
-        data.status = "waitingForParent"
+        data.status = status
         
         # for p in graph.predecessors(newPath):
         #     graph.nodes[p]["data"].status = "examined"
         
     
-    def printStatus(self, long = False):
-        print(70*"#")
-        print("Actual graphs status:")
-        print("No of graphs: ", len(self.graphs))
-        for graphKey in self.graphs:
+    def printStatus(self, long = False, graphKey = None):
+        if not graphKey:
+            print(70*"#")
+            print("Actual graphs status:")
+            print("No of graphs: ", len(self.graphs))
+            for graphKey in self.graphs:
+                print("Graph key: ", graphKey)
+                if long:
+                    print("nodes state:")
+                    graph = self.graphs[graphKey]
+                    for node in graph.nodes:
+                        print(node, graph.nodes[node]["data"].status)
+                print(70*"#")
+        else:
+            if not graphKey in self.graphs:
+                print("Invalid graph key")
+                return
+            
+            print(70*"#")
+            print("Actual graph status:")
             print("Graph key: ", graphKey)
             if long:
                 print("nodes state:")
@@ -179,10 +198,13 @@ class GraphManager(JobManager):
             if data.status == "running"  :
 
                 if self.jobIsFinished(data, results):
-                    slurmOk, comment = data.verifySlurm()
-                    if not slurmOk:
-                        print("Slurm error ", node, comment)
-                        continue
+                    try:
+                        slurmOk, comment = data.verifySlurm()
+                        if not slurmOk:
+                            print("Slurm error ", node, comment)
+                            continue
+                    except:
+                        print("Cannot verify slurm file")
                     
                     try:
                         logOk = data.verifyLog()
@@ -193,13 +215,13 @@ class GraphManager(JobManager):
                         print("Cannot verify log file: "+node)
                     
                     print("Find finished node: ")
-                    print(node)
+                    print("\t",node)
                     finishedNodes.append(node)
                     graph.nodes[node]["data"].analyseLog()
                     graph.nodes[node]["data"].status = "examined"
             elif data.status == "finished":
                 print("Find finished node: ")
-                print(node)
+                print("\t",node)
                 finishedNodes.append(node)
                 graph.nodes[node]["data"].analyseLog()
                 graph.nodes[node]["data"].status = "examined"
@@ -256,7 +278,7 @@ class GraphManager(JobManager):
                         self.runNode(graph, children, bestParent)
             else:
                 print("running new node: ")
-                print(children)
+                print("\t",children)
                 print("from existing files")
                 graph.nodes[children]["data"].run()
         
@@ -267,6 +289,7 @@ class GraphManager(JobManager):
         if not selectedGraph:
             for graphKey in self.graphs:
                 self.graphIteration(graphKey, results)
+                print("")
         else:
             if not selectedGraph in self.graphs:
                 print("Wrong graph key!")
@@ -294,9 +317,9 @@ class GraphManager(JobManager):
         
     def runNode(self, graph, node, parent):
         print("generating new node: ")
-        print(node)
+        print("\t",node)
         print(" from parent: ")
-        print(graph.nodes[parent]["data"].logFile )
+        print("\t",graph.nodes[parent]["data"].logFile )
         
         graph.nodes[node]["data"].generateFromParent(graph.nodes[parent]["data"])
         graph.nodes[node]["data"].run()

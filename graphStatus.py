@@ -13,7 +13,11 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         sm = GraphManager()
         sm.printStatus()
-    else:
+    elif len(sys.argv) == 2:
         sm = GraphManager()
         sm.printStatus(True)
+    elif len(sys.argv) == 3:
+        graphKey = sys.argv[2]
+        sm = GraphManager()
+        sm.printStatus(True, graphKey)
     
