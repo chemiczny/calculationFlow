@@ -89,7 +89,7 @@ class GraphManager(JobManager):
         self.graphs[path] = graph
         return True
     
-    def insertPath2node(self, oldPath, newPath, slurmFile, inputFile):
+    def insertPath2node(self, oldPath, newPath, slurmFile, inputFile, status = "waitingForParent"):
         graph = self.isGraphHere(oldPath)
         if not graph:
             print("Invalid graph key:")
@@ -101,15 +101,15 @@ class GraphManager(JobManager):
         
         nx.relabel_nodes(graph, { oldPath : newPath }, False)
         
-        test = data.verifyLog()
-        if not test:
-            print("something wrong with this node:")
-            print(newPath)
+        # test = data.verifyLog()
+        # if not test:
+        #     print("something wrong with this node:")
+        #     print(newPath)
             
-        data.status = "finished"
+        data.status = "waitingForParent"
         
-        for p in graph.predecessors(newPath):
-            graph.nodes[p]["data"].status = "examined"
+        # for p in graph.predecessors(newPath):
+        #     graph.nodes[p]["data"].status = "examined"
         
     
     def printStatus(self, long = False):

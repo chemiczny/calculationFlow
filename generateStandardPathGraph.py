@@ -119,7 +119,7 @@ def generateTSsearchFromGuess(slurmFile):
     jobGraph.add_edge(optimizedTs, newDir)
     
     lastDir , newDir = newDir,  join(newDir, "opt")
-    newNode = GaussianNode("opt.inp", None)
+    newNode = GaussianNode("opt.inp", newDir)
     newNode.verification = "Opt"
     newNode.readResults = True
     newNode.routeSection = """%Chk=checkp.chk
