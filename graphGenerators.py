@@ -48,7 +48,7 @@ epsinf=1.77556
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P """+theoryHigh+"""
-# nosymm
+# nosymm SCRF(Solvent=Generic, Read)
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
 """
