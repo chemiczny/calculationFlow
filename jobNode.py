@@ -135,21 +135,26 @@ class GaussianNode(JobNode):
         while line:
             
             if "Normal termination of Gaussian" in line:
+                print("\tNormal termination of Gaussian")
                 result = True
                 break
             
             line =lf.readline()
         
         lf.close()
+        if not result:
+            print("\tGaussian terminated abnormally")
         return result
     
     def verifyOpt(self):
         lf = open(self.logFile)
         
         line = lf.readline()
+        result=False
         while line:
             
             if "-- Stationary point found." in line:
+                print("-- Stationary point found.")
                 result = True
                 break
             
@@ -166,6 +171,7 @@ class GaussianNode(JobNode):
         while line:
             
             if "Normal termination of Gaussian" in line:
+                print("\tNormal termination of Gaussian")
                 result = True
                 break
             
@@ -186,6 +192,7 @@ class GaussianNode(JobNode):
             if float(data["Frequency"]) < 0:
                 imaginaryFreqs += 1
                 
+        print("\t imaginary freq no: ", imaginaryFreqs)
         return imaginaryFreqs == self.noOfExcpectedImaginaryFrequetions
         
     def writeSlurmScript( self, filename, processors, time):

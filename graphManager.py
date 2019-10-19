@@ -319,7 +319,7 @@ class GraphManager(JobManager):
         print("generating new node: ")
         print("\t",node)
         print(" from parent: ")
-        print("\t",graph.nodes[parent]["data"].logFile )
+        print("\t",parent, graph.nodes[parent]["data"].logFile )
         
         graph.nodes[node]["data"].generateFromParent(graph.nodes[parent]["data"])
         graph.nodes[node]["data"].run()
