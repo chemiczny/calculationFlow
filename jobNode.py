@@ -22,6 +22,9 @@ class JobNode:
         self.software = None
         
     def verifySlurm(self):
+        if not self.id:
+            return True, "No slurm id!"
+            
         slurmFile = join( self.path, "slurm-"+str(self.id)+".out" )
         
         sf = open(slurmFile, 'r')
@@ -87,6 +90,7 @@ class GaussianNode(JobNode):
         self.logFile = self.inputFile.split(".")[0]+".log"
         self.slurmFile = slurmFile
         self.readChk()
+        self.id = None
         
     def analyseLog(self):
         if not self.readResults:

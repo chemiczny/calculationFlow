@@ -85,6 +85,17 @@ class GraphManager(JobManager):
         
         print("Graph has been modified")
         
+    def printNodeAttributes(self, path):
+        graph = self.isGraphHere(path)
+        
+        if not graph:
+            print("There is no graph here!")
+            return
+        
+        data = graph.nodes[path]["data"]
+        print(vars(data))
+        
+        
     def addGraph(self, graph, path):
         self.graphs[path] = graph
         return True
