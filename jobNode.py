@@ -151,7 +151,7 @@ class GaussianNode(JobNode):
         return result
     
     def verifyOpt(self):
-        lf = open(self.logFile)
+        lf = open(join(self.path, self.logFile))
         
         line = lf.readline()
         result=False
@@ -189,7 +189,7 @@ class GaussianNode(JobNode):
         if not result:
             return result
         
-        freqs = getFreqs(self.logFile)
+        freqs = getFreqs(join(self.path, self.logFile) )
         imaginaryFreqs = 0
         
         for data in freqs:

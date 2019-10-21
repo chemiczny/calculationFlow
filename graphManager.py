@@ -93,7 +93,10 @@ class GraphManager(JobManager):
             return
         
         data = graph.nodes[path]["data"]
-        print(vars(data))
+        dataDict = vars(data)
+        
+        for key in dataDict:
+            print(key, dataDict[key])
         
         
     def addGraph(self, graph, path):
