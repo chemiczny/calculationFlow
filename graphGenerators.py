@@ -8,13 +8,13 @@ Created on Tue Oct 15 12:55:34 2019
 from os.path import join
 from jobNode import GaussianNode
 
-def addSPcorrections(graph, node, theoryLow = "B3LYP/6-31G(d,p)", theoryHigh = "B3LYP/6-311+G(2d,2p)", basename = ""):
+def addSPcorrections(graph, node, theoryLow = "B3LYP/6-31G(d,p)", theoryHigh = "B3LYP/6-311+G(2d,2p)", basename = "", additionalRoute = ""):
     newDir = join(node, basename+"TZ")
     newNode = GaussianNode("tz.inp", newDir)
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P """+theoryHigh+"""
-# nosymm
+# nosymm """+additionalRoute+"""
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
 """
@@ -28,7 +28,7 @@ def addSPcorrections(graph, node, theoryLow = "B3LYP/6-31G(d,p)", theoryHigh = "
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P """+theoryLow+"""
-# nosymm SCRF(Solvent=Generic, Read)
+# nosymm SCRF(Solvent=Generic, Read) """+additionalRoute+"""
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
 """
@@ -48,7 +48,7 @@ epsinf=1.77556
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P """+theoryHigh+"""
-# nosymm SCRF(Solvent=Generic, Read)
+# nosymm SCRF(Solvent=Generic, Read) """+additionalRoute+"""
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
 """
@@ -62,6 +62,11 @@ epsinf=1.77556
     newNode.readResults = True
     graph.add_node(newDir, data = newNode)
     graph.add_edge(node, newDir)
+    
+def addManySPcorrections():
+    functionals = [ "B2PLYPD3" , "B97D3", "BLYP", "PBE1PBE" , "PBEPBE" , "BP86"  ] 
+    functionals +=[ "BPBE", "B3PW91", "BMK", "M05", "M052X", "M06L", "M06", "M062X" ]
+    functionals +=[ "PW6B95D3" ]
     
 def addZPE(graph, node, expectedImaginaryFreqs = 0, theory = "B3LYP/6-31G(d,p)", basename = ""):
     newDir = join(node, basename + "freq")

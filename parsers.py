@@ -149,6 +149,36 @@ def writeNewInput ( oldInput, newCoords, newInputName, routeSection = "", skipAf
     destiny.close()
     oldFile.close()
     
+def getModredundantSection(gaussianInput):
+    gf = open(gaussianInput, 'r')
+    
+    #route section
+    line = gf.readline()
+    while not isBlankLine(line):
+        line = gf.readline()
+        
+    line = gf.readline()
+    #comment
+    while not isBlankLine(line):
+        line = gf.readline()
+        
+    line = gf.readline()
+    #spin, multiplicity and coordinates
+    while not isBlankLine(line):
+        line = gf.readline()
+        
+    modredundantSection = ""
+    
+    line = gf.readline()
+    while not isBlankLine(line):
+        modredundantSection += line
+        line = gf.readline()
+        
+    gf.close()
+    
+    return modredundantSection
+
+
 def go2Freqs(logF):
     line = logF.readline()
     

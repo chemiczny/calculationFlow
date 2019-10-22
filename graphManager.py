@@ -96,7 +96,7 @@ class GraphManager(JobManager):
         dataDict = vars(data)
         
         for key in dataDict:
-            print(key, dataDict[key])
+            print(key," : ", dataDict[key])
         
         
     def addGraph(self, graph, path):
