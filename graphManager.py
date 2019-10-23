@@ -9,6 +9,7 @@ from os.path import join, isfile, isdir
 from jobManager import JobManager
 from squeuePy import SqueueManager
 from copy import deepcopy
+from shutil import copyfile
 import pickle
 import sys
 from os import mkdir
@@ -65,10 +66,17 @@ class GraphManager(JobManager):
         newNodeData = deepcopy(data)
         newNodeData.path = join( newNodeData.path, "restart" )
         newNodeData.skipParentAdditionalSection = False
-        newNodeData.additionalSection = ""
+        newNodeData.additionalSection = "" 
         newNodeData.status = "waitingForParent"
         newNodeData.id = None
+        newNodeData.getCoordsFromParent = True
         newNode = newNodeData.path
+
+        if not isdir(newNode):
+            print("creating: ", newNode)
+            mkdir(newNode)
+
+        copyfile(  join(data.path, data.slurmFile), join( newNodeData.path, newNodeData.slurmFile ) )
         
         data.status = "finished"
         data.readResults = False
@@ -81,7 +89,6 @@ class GraphManager(JobManager):
             graph.remove_edge(path, s)
             
         graph.add_edge(path, newNode)
-        self.buildGraphDirectories(graph)
         
         print("Graph has been modified")
         
@@ -289,7 +296,7 @@ class GraphManager(JobManager):
                             bestParent = p
                             highestEnergy = parentData.valueForSorting
                             
-                        self.runNode(graph, children, bestParent)
+                    self.runNode(graph, children, bestParent)
             else:
                 print("running new node: ")
                 print("\t",children)

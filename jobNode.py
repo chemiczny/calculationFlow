@@ -92,6 +92,7 @@ class GaussianNode(JobNode):
         self.logFile = self.inputFile.split(".")[0]+".log"
         self.slurmFile = slurmFile
         self.readChk()
+        self.getCoordsFromParent = True
         self.id = None
         
     def analyseLog(self):
