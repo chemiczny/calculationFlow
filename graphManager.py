@@ -237,7 +237,7 @@ class GraphManager(JobManager):
                 print("Find finished node: ")
                 print("\t",node)
                 finishedNodes.append(node)
-                graph.nodes[node]["data"].analyseLog()
+                # graph.nodes[node]["data"].analyseLog()
                 graph.nodes[node]["data"].status = "examined"
                 print("Node has been examined")
            

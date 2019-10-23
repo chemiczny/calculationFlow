@@ -26,7 +26,18 @@ if __name__ == "__main__":
         sm = GraphManager()
         sm.insertPath2node(oldNode, newNode, slurmFile, inputFile)
         sm.saveGraphs()
-            
+    elif len(sys.argv) == 4:
+        slurmFile = sys.argv[2]
+        inputFile = getGaussianInpFromSlurmFile(slurmFile)
+        newNode = dirname(abspath(slurmFile))
+        
+        slurmFile = basename(slurmFile)
+        oldNode = sys.argv[1]
+        status = sys.argv[3]
+
+        sm = GraphManager()
+        sm.insertPath2node(oldNode, newNode, slurmFile, inputFile, status)
+        sm.saveGraphs()
         
     else:
         print( "cooooo?")

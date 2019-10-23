@@ -9,7 +9,7 @@ Created on Wed Oct 16 15:31:34 2019
 import networkx as nx
 from os import getcwd
 from os.path import  basename, dirname, abspath, join
-from jobNode import GaussianNode
+from jobNode import GaussianNode, JobNode
 from parsers import getGaussianInpFromSlurmFile, getModredundantSection
 from graphManager import GraphManager
 from generateStandardPathGraph import buildTSsearchGraph
@@ -18,9 +18,16 @@ import sys
 def generateTSsearchFromScan(slurmFiles):
     jobGraph = nx.DiGraph()
     currentDir = getcwd()
+
+    newNode = JobNode(None, currentDir)
+    newNode.status = "finished"
+    jobGraph.add_node(currentDir, data = newNode)
     
     roots = []
-    modredundantSection = getModredundantSection(slurmFiles[0])
+    gaussianInput = getGaussianInpFromSlurmFile(slurmFiles[0])
+    modredundantSection = getModredundantSection(  join( dirname(slurmFiles[0]), gaussianInput))
+    print("Modredundant section will be added: ")
+    print(modredundantSection)
     for slurmF in slurmFiles:
         newPath = dirname(abspath(slurmF))
         
@@ -28,9 +35,10 @@ def generateTSsearchFromScan(slurmFiles):
     
         newNode = GaussianNode(gaussianFile, newPath)
         newNode.verification = "Opt"
+        newNode.getCoordsFromParent = False
         newNode.slurmFile = basename(slurmF)
         jobGraph.add_node( newPath , data = newNode )
-        
+        jobGraph.add_edge(currentDir, newPath)
         roots.append(newPath)
         
     newDir = join(currentDir, "ts_search")
@@ -71,10 +79,11 @@ if __name__ == "__main__":
     elif len(sys.argv) >= 2:
         slurmFiles = sys.argv[1:]
         currentDir = getcwd()
-        
+
         sm = GraphManager()
         graph = sm.isGraphHere(currentDir)
         if not graph:
+            print("Creating new graph")
             newGraph = generateTSsearchFromScan(slurmFiles)
     
             result = sm.addGraph(newGraph, currentDir)

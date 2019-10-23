@@ -20,6 +20,7 @@ class JobNode:
         self.status = "waitingForParent"
         self.valueForSorting = None
         self.software = None
+        self.logFile = None
         
     def verifySlurm(self):
         if not self.id:
@@ -72,6 +73,7 @@ class GaussianNode(JobNode):
         self.processors = 24
         self.time = "72:00:00"
         self.chk = "checkp.chk"
+        self.getCoordsFromParent = True
         
         self.readResults = False
         self.copyChk = False
@@ -219,12 +221,24 @@ class GaussianNode(JobNode):
         parentLog = parent.logFile
         parentInp = parent.inputFile
         
-        lastCoords = getLastCoordsFromLog(join(parent.path, parentLog))
-        writeNewInput(join(parent.path, parentInp), lastCoords, join(self.path, self.inputFile), 
-                      self.routeSection, self.skipParentAdditionalSection, self.additionalSection)
+        if self.getCoordsFromParent:
+            lastCoords = getLastCoordsFromLog(join(parent.path, parentLog))
+            writeNewInput(join(parent.path, parentInp), lastCoords, join(self.path, self.inputFile), 
+                          self.routeSection, self.skipParentAdditionalSection, self.additionalSection)
+        else:
+            if not isfile( join(self.path, self.inputFile ) ):
+                raise Exception( "Input file does not exists! "+self.inputFile )
         
         self.readChk()
-        self.writeSlurmScript("run.slurm", self.processors, self.time)
+        if self.slurmFile:
+            if isfile(join(self.path, self.slurmFile )):
+                print("Using existing slurmFile: ", self.slurmFile)
+            else:
+                print("Generating slurmFile")
+                self.writeSlurmScript("run.slurm", self.processors, self.time)
+        else:
+            print("Generating slurmFile")
+            self.writeSlurmScript("run.slurm", self.processors, self.time)
         
         if self.copyChk:
             copyfile(join(parent.path, parent.chk), join(self.path, self.chk))
