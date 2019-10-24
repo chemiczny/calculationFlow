@@ -222,13 +222,18 @@ class GaussianNode(JobNode):
         parentLog = parent.logFile
         parentInp = parent.inputFile
         
-        if self.getCoordsFromParent:
+        if hasattr(self, "getCoordsFromParent"):
+            if self.getCoordsFromParent:
+                lastCoords = getLastCoordsFromLog(join(parent.path, parentLog))
+                writeNewInput(join(parent.path, parentInp), lastCoords, join(self.path, self.inputFile), 
+                              self.routeSection, self.skipParentAdditionalSection, self.additionalSection)
+            else:
+                if not isfile( join(self.path, self.inputFile ) ):
+                    raise Exception( "Input file does not exists! "+self.inputFile )
+        else:
             lastCoords = getLastCoordsFromLog(join(parent.path, parentLog))
             writeNewInput(join(parent.path, parentInp), lastCoords, join(self.path, self.inputFile), 
-                          self.routeSection, self.skipParentAdditionalSection, self.additionalSection)
-        else:
-            if not isfile( join(self.path, self.inputFile ) ):
-                raise Exception( "Input file does not exists! "+self.inputFile )
+                            self.routeSection, self.skipParentAdditionalSection, self.additionalSection)
         
         self.readChk()
         if self.slurmFile:
