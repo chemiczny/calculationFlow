@@ -141,6 +141,7 @@ def writeNewInput ( oldInput, newCoords, newInputName, routeSection = "", skipAf
             line = oldFile.readline()
             
     if additional:
+        destiny.write("\n")
         destiny.write(additional)
         destiny.write("\n\n")
     elif skipAfterCoords:

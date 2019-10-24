@@ -105,6 +105,16 @@ class GraphManager(JobManager):
         
         for key in dataDict:
             print(key," : ", dataDict[key])
+
+        print("Node successors:")
+        successors = list(graph.successors(path))
+        for s in successors:
+            print(s)
+
+        print("Node predecessors")
+        predecessors = list( graph.predecessors(path) )
+        for p in predecessors:
+            print(p)
         
         
     def addGraph(self, graph, path):
@@ -162,7 +172,7 @@ class GraphManager(JobManager):
                 else:
                     status = self.getGraphStatus(graphKey)
                     for key in sorted(list(status.keys())):
-                        print( keys, " : ", status[key] )
+                        print( key, " : ", status[key] )
                     
                     
                 print(70*"#")
