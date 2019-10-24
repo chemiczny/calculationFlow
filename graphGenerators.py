@@ -20,6 +20,7 @@ def addSPcorrections(graph, node, theoryLow = "B3LYP/6-31G(d,p)", theoryHigh = "
 """
     newNode.verification = "SP"
     newNode.readResults = True
+    newNode.time = "24:00:00"
     graph.add_node(newDir, data = newNode)
     graph.add_edge(node, newDir)
     
@@ -45,6 +46,7 @@ epsinf=1.77556
     
     newDir = join(node, basename+"TZ_PCM")
     newNode = GaussianNode("tz_pcm.inp", newDir)
+    newNode.time = "24:00:00"
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P """+theoryHigh+"""
@@ -67,6 +69,8 @@ def addManySPcorrections():
     functionals = [ "B2PLYPD3" , "B97D3", "BLYP", "PBE1PBE" , "PBEPBE" , "BP86"  ] 
     functionals +=[ "BPBE", "B3PW91", "BMK", "M05", "M052X", "M06L", "M06", "M062X" ]
     functionals +=[ "PW6B95D3" ]
+    
+    
     
 def addZPE(graph, node, expectedImaginaryFreqs = 0, theory = "B3LYP/6-31G(d,p)", basename = ""):
     newDir = join(node, basename + "freq")

@@ -48,7 +48,7 @@ def generateTSsearchFromScan(slurmFiles):
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P AM1
-# Opt(TS, CalcAll) nosymm
+# Opt(TS, CalcAll, noeigentest) nosymm
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
 """

@@ -123,6 +123,7 @@ class GraphManager(JobManager):
         
         data = graph.nodes[oldPath]["data"]
         data.rebuild(inputFile, newPath, slurmFile)
+        data.getCoordsFromParent = False
         
         nx.relabel_nodes(graph, { oldPath : newPath }, False)
         
