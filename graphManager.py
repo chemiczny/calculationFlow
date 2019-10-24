@@ -14,6 +14,7 @@ import pickle
 import sys
 from os import mkdir
 import networkx as nx
+from collections import defaultdict
 
 class GraphManager(JobManager):
     def __init__(self):
@@ -137,6 +138,14 @@ class GraphManager(JobManager):
         # for p in graph.predecessors(newPath):
         #     graph.nodes[p]["data"].status = "examined"
         
+    def getGraphStatus(self, graphKey):
+        status = defaultdict(int)
+        
+        for node in self.graphs[graphKey].nodes:
+            graph = self.graphs[graphKey]
+            status[graph.nodes[node]["data"].status] += 1
+            
+        return status
     
     def printStatus(self, long = False, graphKey = None):
         if not graphKey:
@@ -150,6 +159,12 @@ class GraphManager(JobManager):
                     graph = self.graphs[graphKey]
                     for node in graph.nodes:
                         print(node, graph.nodes[node]["data"].status)
+                else:
+                    status = self.getGraphStatus(graphKey)
+                    for key in sorted(list(status.keys())):
+                        print( keys, " : ", status[key] )
+                    
+                    
                 print(70*"#")
         else:
             if not graphKey in self.graphs:
