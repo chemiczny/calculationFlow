@@ -142,7 +142,7 @@ def writeNewInput ( oldInput, newCoords, newInputName, routeSection = "", skipAf
             
     if additional:
         destiny.write("\n")
-        destiny.write(additional)
+        destiny.write(additional.strip("\n"))
         destiny.write("\n\n")
     elif skipAfterCoords:
         destiny.write("\n\n")

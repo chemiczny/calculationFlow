@@ -145,8 +145,9 @@ class GraphManager(JobManager):
             
         data.status = status
         
-        # for p in graph.predecessors(newPath):
-        #     graph.nodes[p]["data"].status = "examined"
+        if status == "waitingForParent":
+            for p in graph.predecessors(newPath):
+                graph.nodes[p]["data"].status = "finished"
         
     def getGraphStatus(self, graphKey):
         status = defaultdict(int)
