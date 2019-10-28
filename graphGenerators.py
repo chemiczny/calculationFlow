@@ -20,7 +20,7 @@ def addSPcorrections(graph, node, theoryLow = "B3LYP/6-31G(d,p)", theoryHigh = "
 """
     newNode.verification = "SP"
     newNode.readResults = True
-    newNode.time = "24:00:00"
+    newNode.time = "72:00:00"
     graph.add_node(newDir, data = newNode)
     graph.add_edge(node, newDir)
     

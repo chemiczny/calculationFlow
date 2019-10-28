@@ -7,6 +7,7 @@ Created on Mon Oct 14 13:25:14 2019
 """
 from os.path import join, isfile, isdir
 from jobManager import JobManager
+from jobNode import GaussianNode
 from squeuePy import SqueueManager
 from copy import deepcopy
 from shutil import copyfile
@@ -120,6 +121,28 @@ class GraphManager(JobManager):
     def addGraph(self, graph, path):
         self.graphs[path] = graph
         return True
+    
+    def addNewNode(self, parentPath, newNodePath, slurmFile, inputFile, status = "waitingForParent"):
+        graph = self.isGraphHere(parentPath)
+        if not graph:
+            print("Invalid graph key:")
+            print(parentPath)
+            return
+        
+        if not status in [ "waitingForParent" , "running" , "finished" , "examined" ]:
+            print("Invalid status!")
+            return
+        
+        if status == "waitingForParent":
+            graph.nodes[parentPath]["data"].status = "finished"
+            
+        newNode = GaussianNode(inputFile, newNodePath)
+        newNode.verification = "SP"
+        newNode.readResults = True
+        newNode.slurmFile = slurmFile
+        newNode.getCoordsFromParent = False
+        graph.add_node( newNodePath , data = newNode )
+        graph.add_edge(parentPath, newNodePath)
     
     def insertPath2node(self, oldPath, newPath, slurmFile, inputFile, status = "waitingForParent"):
         graph = self.isGraphHere(oldPath)

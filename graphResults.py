@@ -19,4 +19,4 @@ if __name__ == "__main__":
     else:
         graphKey = sys.argv[1]
         sm = GraphManager()
-        sm.printResults(graphKey, False)
+        sm.printResults(graphKey, True)
