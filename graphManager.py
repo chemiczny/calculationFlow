@@ -141,6 +141,7 @@ class GraphManager(JobManager):
         newNode.readResults = True
         newNode.slurmFile = slurmFile
         newNode.getCoordsFromParent = False
+        newNode.status = status
         graph.add_node( newNodePath , data = newNode )
         graph.add_edge(parentPath, newNodePath)
     
