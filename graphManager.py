@@ -192,7 +192,7 @@ class GraphManager(JobManager):
                     print(node, graph.nodes[node]["data"].status)
             print(70*"#")
     
-    def printResults(self, path):
+    def printResults(self, path, force = False):
         print(70*"#")
         if not path in self.graphs:
             print("Invalid key!")
@@ -202,6 +202,10 @@ class GraphManager(JobManager):
         
         for node in graph.nodes:
             data = graph.nodes[node]["data"]
+            
+            if not hasattr(data, "readResults"):
+                continue
+            
             if not data.readResults:
                 continue
             
@@ -210,7 +214,8 @@ class GraphManager(JobManager):
                 print("Result not available, node status: ", data.status)
                 continue
             
-            if not data.results:
+            if not data.results or force:
+                data.results = []
                 data.analyseLog()
                 
             print(node)

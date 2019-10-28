@@ -10,9 +10,13 @@ from graphManager import GraphManager
 import sys
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: graphResults graphKey")
-    else:
+    if len(sys.argv) < 2:
+        print("Usage: graphResults graphKey force[optional]")
+    elif len(sys.argv) == 2:
         graphKey = sys.argv[1]
         sm = GraphManager()
         sm.printResults(graphKey)
+    else:
+        graphKey = sys.argv[1]
+        sm = GraphManager()
+        sm.printResults(graphKey, False)
