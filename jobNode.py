@@ -72,6 +72,7 @@ class GaussianNode(JobNode):
         self.noOfExcpectedImaginaryFrequetions = -1
         self.processors = 24
         self.time = "72:00:00"
+        self.partition = "plgrid"
         self.chk = "checkp.chk"
         self.getCoordsFromParent = True
         
@@ -94,11 +95,16 @@ class GaussianNode(JobNode):
         self.readChk()
         self.getCoordsFromParent = True
         self.id = None
+        self.results = []
         
     def analyseLog(self):
         if not self.readResults:
             return
         
+        if not isfile( join(self.path, self.logFile) ):
+            print("File does not exists! ",join(self.path, self.logFile) )
+            return
+
         lf = open(join(self.path, self.logFile))
         
         line = lf.readline()
@@ -209,7 +215,10 @@ class GaussianNode(JobNode):
         slurmFile.write("#SBATCH --nodes=1\n")
         slurmFile.write("#SBATCH --cpus-per-task="+str(processors)+"\n")
         slurmFile.write("#SBATCH --time="+str(time)+"\n")
-        slurmFile.write("#SBATCH -p plgrid\n\n")
+        if hasattr(self, "partition"):
+            slurmFile.write("#SBATCH -p "+self.partition+"\n\n")
+        else:
+            slurmFile.write("#SBATCH -p plgrid\n\n")
 
         slurmFile.write("module add plgrid/apps/gaussian/g16.B.01\n")
         slurmFile.write("g16 " + self.inputFile + "\n")
