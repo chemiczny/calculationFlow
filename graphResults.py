@@ -16,7 +16,9 @@ if __name__ == "__main__":
         graphKey = sys.argv[1]
         sm = GraphManager()
         sm.printResults(graphKey)
+        sm.saveGraphs()
     else:
         graphKey = sys.argv[1]
         sm = GraphManager()
         sm.printResults(graphKey, True)
+        sm.saveGraphs()
