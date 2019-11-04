@@ -35,7 +35,7 @@ if __name__ == "__main__":
                 if not isdir(newPath):
                     makedirs(newPath)
                 
-                relabelDict[ node, newPath ]
+                relabelDict[ node ] = newPath
                 
                 if nodeData.logFile:
                     logFilePath = join( nodeData.path, nodeData.logFile )

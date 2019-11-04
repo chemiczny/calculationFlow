@@ -202,25 +202,32 @@ class GraphManager(JobManager):
                     
                 print(70*"#")
         else:
-            if not graphKey in self.graphs:
-                print("Invalid graph key")
+            graph = None
+            if graphKey in self.graphs:
+                graph = self.graphs[graphKey]
+                print("Read graph from graph manager")
+            elif isfile(graphKey):
+                infile = open(graphKey,'rb')
+                graph = pickle.load(infile)
+                infile.close()
+                print("Read graph from file")
+            else:
+                print("Invalid graphKey!")
                 return
             
             print(70*"#")
             print("Actual graph status:")
             print("Graph key: ", graphKey)
-            if long:
-                print("nodes state:")
-                graph = self.graphs[graphKey]
-                for node in graph.nodes:
-                    print(node, graph.nodes[node]["data"].status)
+            print("nodes state:")
+            for node in graph.nodes:
+                print(node, graph.nodes[node]["data"].status)
             print(70*"#")
     
     def printResults(self, path, force = False):
         print(70*"#")
               
         graph = None
-        if path in sm.graphs:
+        if path in self.graphs:
             graph = self.graphs[path]
             print("Read graph from graph manager")
         elif isfile(path):

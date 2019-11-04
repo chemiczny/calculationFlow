@@ -43,6 +43,6 @@ if __name__ == "__main__":
             if nodeData.status != "examined":
                 continue
             
-            logFilePath = join( nodeData.path, nodeData.logFile )
+            logFilePath = join( nodeData.path, nodeData.inputFile )
             copyfile(logFilePath, nodeData.structure2dump)
             
