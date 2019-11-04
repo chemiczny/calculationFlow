@@ -62,6 +62,7 @@ def buildTSsearchGraph( jobGraph, currentDir ):
     newNode.verification = "Freq"
     newNode.noOfExcpectedImaginaryFrequetions = 1
     newNode.readResults = True
+    newNode.structure2dump = "TS.inp"
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P B3LYP/6-31G(d,p)
@@ -105,7 +106,7 @@ def buildTSsearchGraph( jobGraph, currentDir ):
     jobGraph.add_edge(lastDir, newDir)
     
     addSPcorrections(jobGraph, newDir)
-    addZPE(jobGraph, newDir)
+    addZPE(jobGraph, newDir, structure2dump= "irc_reverse_opt.inp")
     
     newDir = join(currentDir, "irc_forward")
     newNode = GaussianNode("irc_forward.inp", newDir)
@@ -136,7 +137,7 @@ def buildTSsearchGraph( jobGraph, currentDir ):
     jobGraph.add_edge(lastDir, newDir)
     
     addSPcorrections(jobGraph, newDir)
-    addZPE(jobGraph, newDir)
+    addZPE(jobGraph, newDir, structure2dump= "irc_forward_opt.inp")
     return jobGraph
 
 if __name__ == "__main__":

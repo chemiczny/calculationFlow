@@ -72,11 +72,12 @@ def addManySPcorrections():
     
     
     
-def addZPE(graph, node, expectedImaginaryFreqs = 0, theory = "B3LYP/6-31G(d,p)", basename = ""):
+def addZPE(graph, node, expectedImaginaryFreqs = 0, theory = "B3LYP/6-31G(d,p)", basename = "", structure2dump = ""):
     newDir = join(node, basename + "freq")
     newNode = GaussianNode("freq.inp", newDir)
     newNode.verification = "Freq"
     newNode.readResults = True
+    newNode.structure2dump = structure2dump
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P """+theory+"""

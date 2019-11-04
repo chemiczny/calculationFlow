@@ -80,6 +80,7 @@ class GaussianNode(JobNode):
         self.copyChk = False
         self.results = []
         self.software = "Gaussian"
+        self.structure2dump = ""
         
     def readChk(self):
         if isfile( join( self.path, self.inputFile )):

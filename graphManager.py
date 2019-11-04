@@ -218,11 +218,19 @@ class GraphManager(JobManager):
     
     def printResults(self, path, force = False):
         print(70*"#")
-        if not path in self.graphs:
-            print("Invalid key!")
+              
+        graph = None
+        if path in sm.graphs:
+            graph = self.graphs[path]
+            print("Read graph from graph manager")
+        elif isfile(path):
+            infile = open(path,'rb')
+            graph = pickle.load(infile)
+            infile.close()
+            print("Read graph from file")
+        else:
+            print("Invalid graphKey!")
             return
-        
-        graph = self.graphs[path]
         
         for node in graph.nodes:
             data = graph.nodes[node]["data"]
