@@ -1,0 +1,7 @@
+{
+	"firstLine"	: "#!/bin/bash",
+	"gaussianCommand" : "g09",
+	"gaussianModule" : "gaussian/09_C.01",
+	"additionalLines" : "export GAUSS_SCRDIR=$PWD",
+	"timeRestrictions" : "False"
+}

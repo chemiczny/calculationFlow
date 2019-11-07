@@ -17,13 +17,13 @@ from graphManager import GraphManager
 def addManySPcorrections(graph, node):
     functionals = [ "B2PLYPD3" , "B97D3", "BLYP", "PBE1PBE" , "PBEPBE" , "BP86"  ] 
     functionals +=[ "BPBE", "B3PW91", "BMK", "M05", "M052X", "M06L", "M06", "M062X" ]
-    functionals +=[ "PW6B95D3" ]
+    functionals +=[  ]
     
     for functional in functionals:
         newDir = join(node, functional)
-        newNode = GaussianNode("tz.inp", newDir)
+        newNode = GaussianNode("sp.inp", newDir)
         newNode.routeSection = """%Chk=checkp.chk
-%Mem=6
+%Nproc=6
 #P """+functional+"""/6-31G(d,p)
 # nosymm 
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
@@ -49,7 +49,8 @@ if __name__ == "__main__":
         graph = sm.isGraphHere(currentDir)
         if not graph:
             jobGraph = nx.DiGraph()
-            newNode = GaussianNode(gaussianLog, currentDir)
+            newNode = GaussianNode(gaussianFile, currentDir)
+            newNode.slurmFile = slurmFile
             newNode.status = "finished"
             jobGraph.add_node( currentDir , data = newNode )
             
