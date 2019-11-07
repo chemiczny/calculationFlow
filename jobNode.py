@@ -8,8 +8,9 @@ Created on Fri Oct 11 14:08:06 2019
 from os import getcwd, chdir
 from sbatchPy import SbatchManager
 from parsers import getLastCoordsFromLog, writeNewInput, getFreqs, getCheckpointNameFromInput
-from os.path import join, isfile
+from os.path import join, isfile, expanduser
 from shutil import copyfile
+import json
 
 class JobNode:
     def __init__(self, inputFile, path):
@@ -54,6 +55,19 @@ class JobNode:
         
         chdir(lastDir)
         self.status = "running"
+        
+    def readSlurmConfig(self):
+        configPath = expanduser("~/jobManagerPro/config.json")
+        slurmConfig = {}
+        if not isfile(configPath):
+            return slurmConfig
+        
+        configFile = open(configPath)
+        slurmConfig = json.load(configFile)
+        configFile.close()
+
+        return slurmConfig
+        
     
 #    def restart(self):
 #        pass
@@ -212,17 +226,37 @@ class GaussianNode(JobNode):
     def writeSlurmScript( self, filename, processors, time):
         fullPath = join(self.path, filename)
         slurmFile = open(fullPath, 'w')
-        slurmFile.write("#!/bin/env bash\n")
+        
+        slurmConfig = self.readSlurmConfig()
+        
+        if not "firstLine" in slurmConfig:
+            slurmFile.write("#!/bin/env bash\n")
+        else:
+            slurmFile.write(slurmConfig["firstLine"]+"\n")
+            
         slurmFile.write("#SBATCH --nodes=1\n")
         slurmFile.write("#SBATCH --cpus-per-task="+str(processors)+"\n")
-        slurmFile.write("#SBATCH --time="+str(time)+"\n")
-        if hasattr(self, "partition"):
-            slurmFile.write("#SBATCH -p "+self.partition+"\n\n")
-        else:
-            slurmFile.write("#SBATCH -p plgrid\n\n")
+                        
+        if not slurmConfig:
+            slurmFile.write("#SBATCH --time="+str(time)+"\n")
+            if hasattr(self, "partition"):
+                slurmFile.write("#SBATCH -p "+self.partition+"\n\n")
+            else:
+                slurmFile.write("#SBATCH -p plgrid\n\n")
 
-        slurmFile.write("module add plgrid/apps/gaussian/g16.B.01\n")
-        slurmFile.write("g16 " + self.inputFile + "\n")
+        if not "gaussianModule" in slurmConfig:
+            slurmFile.write("module add plgrid/apps/gaussian/g16.B.01\n")
+        else:
+            slurmFile.write("module add "+slurmConfig["gaussianModule"]+"\n")
+            
+        if "additionalLines" in slurmConfig:
+            slurmFile.write(slurmConfig["additionalLines"]+"\n")
+            
+        gaussianCommand = "g16"
+        if "gaussianCommand" in slurmConfig:
+            gaussianCommand = slurmConfig["gaussianCommand"]
+            
+        slurmFile.write(gaussianCommand+ " " + self.inputFile + "\n")
         
         slurmFile.close()
         

@@ -65,12 +65,6 @@ epsinf=1.77556
     graph.add_node(newDir, data = newNode)
     graph.add_edge(node, newDir)
     
-def addManySPcorrections():
-    functionals = [ "B2PLYPD3" , "B97D3", "BLYP", "PBE1PBE" , "PBEPBE" , "BP86"  ] 
-    functionals +=[ "BPBE", "B3PW91", "BMK", "M05", "M052X", "M06L", "M06", "M062X" ]
-    functionals +=[ "PW6B95D3" ]
-    
-    
     
 def addZPE(graph, node, expectedImaginaryFreqs = 0, theory = "B3LYP/6-31G(d,p)", basename = "", structure2dump = "",
            additionalSection = "", additionalRouteSection = ""):

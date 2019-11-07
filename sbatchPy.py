@@ -31,7 +31,7 @@ class SbatchManager(JobManager):
         actualTime = time()
         actualDir = getcwd()
         comment2write = str(comment)
-        system("sbatch "+jobFile+" &> " + self.tempFilePath)
+        system("sbatch "+jobFile+" > " + self.tempFilePath)
         jobID = self.readJobID()
         
         if jobID:

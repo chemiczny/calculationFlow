@@ -25,7 +25,7 @@ class SqueueManager(JobManager):
         return data
         
     def squeuePy(self, deleteFinished = False, jobFilter = "" , json = False, printResult = True):
-        system("squeue  &> " + self.tempFilePath)
+        system("squeue  > " + self.tempFilePath)
         sqData = self.readSqueueLog()
         runningData = self.readRunningCsv()
     
