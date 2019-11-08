@@ -15,9 +15,9 @@ import sys
 from graphManager import GraphManager
 
 def addManySPcorrections(graph, node):
-    functionals = [ "BLYP", "PBE1PBE" , "PBEPBE" , "BP86"  ] 
-    functionals +=[ "BPBE", "B3PW91", "BMK", "M05", "M052X", "M06L", "M06", "M062X" ]
-    functionals +=[  ]
+    functionals = [ "BLYP", "B3LYP", "PBE", "BP86"  ] 
+    functionals +=[ "M05", "M052X", "M06L", "M06", "M062X" ]
+    functionals +=[ "TPSS" ]
     
     for functional in functionals:
         newDir = join(node, functional)
@@ -25,7 +25,7 @@ def addManySPcorrections(graph, node):
         newNode.routeSection = """%Chk=checkp.chk
 %Nproc=6
 #P """+functional+"""/6-31G(d,p)
-# nosymm 
+# nosymm Population(Hirshfeld)
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
 """
