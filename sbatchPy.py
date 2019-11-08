@@ -41,13 +41,11 @@ class SbatchManager(JobManager):
             return None
 
 if __name__ == "__main__":
-    if len(sys.argv) == 1:
-        print( "Podaj zadanie")
+    if len(sys.argv) < 2 or len(sys.argv) > 3:
+        print( "Usage: sbatchPy slurm script, comment [optional]")
     elif len(sys.argv) == 2:
         sm = SbatchManager()
         sm.sbatchPy(sys.argv[1])
     elif len(sys.argv) == 3:
         sm = SbatchManager()
         sm.sbatchPy(sys.argv[1], sys.argv[2])
-    else:
-        print( "cooooo?")

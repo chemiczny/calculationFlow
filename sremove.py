@@ -27,10 +27,7 @@ class SremoveManager(JobManager):
             
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-        print( "Podaj nr joba")
-    elif len(sys.argv) == 2:
-        sm = SremoveManager()
-        sm.sremove( [ sys.argv[1] ] )
+        print( "Usage: sremove jobId1, jobId2 ...")
     else:
         sm = SremoveManager()
         sm.sremove( sys.argv[1:] )

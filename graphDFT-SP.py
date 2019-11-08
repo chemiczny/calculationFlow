@@ -15,7 +15,7 @@ import sys
 from graphManager import GraphManager
 
 def addManySPcorrections(graph, node):
-    functionals = [ "B2PLYPD3" , "B97D3", "BLYP", "PBE1PBE" , "PBEPBE" , "BP86"  ] 
+    functionals = [ "BLYP", "PBE1PBE" , "PBEPBE" , "BP86"  ] 
     functionals +=[ "BPBE", "B3PW91", "BMK", "M05", "M052X", "M06L", "M06", "M062X" ]
     functionals +=[  ]
     
