@@ -15,9 +15,9 @@ import sys
 from graphManager import GraphManager
 
 def addManySPcorrections(graph, node):
-    functionals = [ "BLYP", "B3LYP", "PBE", "BP86"  ] 
+    functionals = [ "BLYP", "B3LYP", "BP86"  ] 
     functionals +=[ "M05", "M052X", "M06L", "M06", "M062X" ]
-    functionals +=[ "TPSS" ]
+    functionals +=[ "TPSSTPSS" , "PBEPBE" ]
     
     for functional in functionals:
         newDir = join(node, functional)

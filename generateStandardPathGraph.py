@@ -15,7 +15,7 @@ from graphGenerators import addSPcorrections, addZPE
 from graphManager import GraphManager
 import sys
 
-def generateTSsearchFromGuess(slurmFile):
+def generateTSsearchFromGuess(slurmFile, functional = "B3LYP"):
     jobGraph = nx.DiGraph()
     currentDir = getcwd()
     gaussianFile = getGaussianInpFromSlurmFile(slurmFile)
@@ -25,16 +25,16 @@ def generateTSsearchFromGuess(slurmFile):
     newNode.slurmFile = slurmFile
     jobGraph.add_node( currentDir , data = newNode )
     
-    return buildTSsearchGraph(jobGraph, currentDir )
+    return buildTSsearchGraph(jobGraph, currentDir, functional )
     
-def buildTSsearchGraph( jobGraph, currentDir ):
+def buildTSsearchGraph( jobGraph, currentDir, functional = "B3LYP" ):
     newDir = join(currentDir, "freq")
     newNode = GaussianNode("freq.inp", newDir)
     newNode.verification = "SP"
     
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
-#P B3LYP/6-31G(d,p)
+#P """+functional+"""/6-31G(d,p)
 # Freq nosymm
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
@@ -49,7 +49,7 @@ def buildTSsearchGraph( jobGraph, currentDir ):
     newNode.readResults = True
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
-#P B3LYP/6-31G(d,p)
+#P """+functional+"""/6-31G(d,p)
 # Opt(TS,ReadFC,noeigentest) nosymm
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
@@ -65,7 +65,7 @@ def buildTSsearchGraph( jobGraph, currentDir ):
     newNode.structure2dump = "TS.inp"
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
-#P B3LYP/6-31G(d,p)
+#P """+functional+"""/6-31G(d,p)
 # Freq nosymm
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
@@ -73,7 +73,7 @@ def buildTSsearchGraph( jobGraph, currentDir ):
     jobGraph.add_node(newDir, data = newNode)
     jobGraph.add_edge(lastDir, newDir)
     
-    addSPcorrections(jobGraph, newDir)
+    addSPcorrections(jobGraph, newDir, theoryLow = functional+"/6-31G(d,p)", theoryHigh = functional+ "/6-311+G(2d,2p)")
     
     optimizedTs = newDir
     
@@ -83,7 +83,7 @@ def buildTSsearchGraph( jobGraph, currentDir ):
     newNode.copyChk = True
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
-#P B3LYP/6-31G(d,p)
+#P """+functional+"""/6-31G(d,p)
 # IRC(RCFC, Reverse) nosymm
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
@@ -97,7 +97,7 @@ def buildTSsearchGraph( jobGraph, currentDir ):
     newNode.readResults = True
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
-#P B3LYP/6-31G(d,p)
+#P """+functional+"""/6-31G(d,p)
 # Opt nosymm
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
@@ -105,8 +105,8 @@ def buildTSsearchGraph( jobGraph, currentDir ):
     jobGraph.add_node(newDir, data = newNode)
     jobGraph.add_edge(lastDir, newDir)
     
-    addSPcorrections(jobGraph, newDir)
-    addZPE(jobGraph, newDir, structure2dump= "irc_reverse_opt.inp")
+    addSPcorrections(jobGraph, newDir, theoryLow = functional+"/6-31G(d,p)", theoryHigh = functional+ "/6-311+G(2d,2p)")
+    addZPE(jobGraph, newDir, structure2dump= "irc_reverse_opt.inp", theory = functional+"/6-31G(d,p)")
     
     newDir = join(currentDir, "irc_forward")
     newNode = GaussianNode("irc_forward.inp", newDir)
@@ -114,7 +114,7 @@ def buildTSsearchGraph( jobGraph, currentDir ):
     newNode.copyChk = True
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
-#P B3LYP/6-31G(d,p)
+#P """+functional+"""/6-31G(d,p)
 # IRC(RCFC, Forward) nosymm
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
@@ -128,7 +128,7 @@ def buildTSsearchGraph( jobGraph, currentDir ):
     newNode.readResults = True
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
-#P B3LYP/6-31G(d,p)
+#P """+functional+"""/6-31G(d,p)
 # Opt nosymm
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
@@ -136,21 +136,25 @@ def buildTSsearchGraph( jobGraph, currentDir ):
     jobGraph.add_node(newDir, data = newNode)
     jobGraph.add_edge(lastDir, newDir)
     
-    addSPcorrections(jobGraph, newDir)
-    addZPE(jobGraph, newDir, structure2dump= "irc_forward_opt.inp")
+    addSPcorrections(jobGraph, newDir, theoryLow = functional+"/6-31G(d,p)", theoryHigh = functional+ "/6-311+G(2d,2p)")
+    addZPE(jobGraph, newDir, structure2dump= "irc_forward_opt.inp", theory = functional+"/6-31G(d,p)")
     return jobGraph
 
 if __name__ == "__main__":
-    if len(sys.argv) == 1:
-        print("Usage: initTSsearchFromGuess slurmFile")
-    elif len(sys.argv) == 2:
+    if len(sys.argv) < 2:
+        print("Usage: initTSsearchFromGuess slurmFile functional [default: B3LYP]")
+    else:
         slurmFile = sys.argv[1]
         currentDir = getcwd()
+        
+        functional = "B3LYP"
+        if len(sys.argv) >= 3:
+            functional = sys.argv[2]
         
         sm = GraphManager()
         graph = sm.isGraphHere(currentDir)
         if not graph:
-            newGraph = generateTSsearchFromGuess(slurmFile)
+            newGraph = generateTSsearchFromGuess(slurmFile, functional)
     
             
             result = sm.addGraph(newGraph, currentDir)
@@ -160,7 +164,4 @@ if __name__ == "__main__":
             print("Created new graph")
         else:
             print("Cannot create more than one graph in the same directory")
-            
-        
-    else:
-        print( "cooooo?")
+
