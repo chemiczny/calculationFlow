@@ -309,10 +309,13 @@ class GraphManager(JobManager):
                         print("Cannot verify log file: "+node)
                         
                     if jobFailed:
-                        if data.autorestart:
-                            restartJob = data.shouldBeRestarted()
-                            if restartJob:
-                                nodes2restart.append(node)
+                        if hasattr(data, "autorestart"):
+                            if data.autorestart:
+                                restartJob = data.shouldBeRestarted()
+                                if restartJob:
+                                    nodes2restart.append(node)
+                            else:
+                                continue
                         else:
                             continue
                     
