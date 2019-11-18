@@ -338,6 +338,7 @@ class GraphManager(JobManager):
         for node in nodes2restart:
             self.restartNode(node)
             finishedNodes.append(node)
+            graph.nodes[node]["data"].status = "examined"
             
         children2run =set([])
         for node in finishedNodes:
