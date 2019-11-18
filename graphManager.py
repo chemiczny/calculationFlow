@@ -284,17 +284,19 @@ class GraphManager(JobManager):
         print(graphKey)
         graph = self.graphs[graphKey]
         finishedNodes = []
+        nodes2restart = []
         for node in graph.nodes:
             data = graph.nodes[node]["data"]
             
             if data.status == "running"  :
-
+                jobFailed = False
+                
                 if self.jobIsFinished(data, results):
                     try:
                         slurmOk, comment = data.verifySlurm()
                         if not slurmOk:
                             print("Slurm error ", node, comment)
-                            continue
+                            jobFailed = True
                     except:
                         print("Cannot verify slurm file")
                     
@@ -302,9 +304,17 @@ class GraphManager(JobManager):
                         logOk = data.verifyLog()
                         if not logOk:
                             print("Error in logfile ", node)
-                            continue
+                            jobFailed = True
                     except:
                         print("Cannot verify log file: "+node)
+                        
+                    if jobFailed:
+                        if data.autorestart:
+                            restartJob = data.shouldBeRestarted()
+                            if restartJob:
+                                nodes2restart.append(node)
+                        else:
+                            continue
                     
                     print("Find finished node: ")
                     print("\t",node)
@@ -319,6 +329,13 @@ class GraphManager(JobManager):
                 graph.nodes[node]["data"].status = "examined"
                 print("Node has been examined")
            
+        if nodes2restart:
+            print("Restarting nodes...")
+            
+        for node in nodes2restart:
+            self.restartNode(node)
+            finishedNodes.append(node)
+            
         children2run =set([])
         for node in finishedNodes:
             children2run |= set( graph.successors(node ))

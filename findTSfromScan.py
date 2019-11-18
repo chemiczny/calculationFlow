@@ -37,6 +37,7 @@ def generateTSsearchFromScan(slurmFiles):
         newNode.verification = "Opt"
         newNode.getCoordsFromParent = False
         newNode.slurmFile = basename(slurmF)
+        newNode.autorestart = True
         jobGraph.add_node( newPath , data = newNode )
         jobGraph.add_edge(currentDir, newPath)
         roots.append(newPath)

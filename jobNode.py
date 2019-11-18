@@ -22,6 +22,7 @@ class JobNode:
         self.valueForSorting = None
         self.software = None
         self.logFile = None
+        self.autorestart = False
         
     def verifySlurm(self):
         if not self.id:
@@ -292,6 +293,35 @@ class GaussianNode(JobNode):
         
         if self.copyChk:
             copyfile(join(parent.path, parent.chk), join(self.path, self.chk))
+            
+    def shouldBeRestarted(self):
+        slurmOk, comment = self.verifySlurm()
         
+        if "DUE TO TIME LIMIT" in comment:
+            return True
+        
+        logFile = join(self.path, self.logFile)
+        if not isfile(logFile):
+            return False
+        
+        lf = open(logFile, 'r')
+        
+        restartThisJob = False
+        
+        line = lf.readline()
+        
+        while line:
+            if "New curvilinear step not converged." in line:
+                restartThisJob = True
+                break
+            elif "FormBX had a problem." in line:
+                restartThisJob = True
+                break
+            
+            line = lf.readline()
+        
+        lf.close()
+        
+        return restartThisJob
         
         
