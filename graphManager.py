@@ -379,6 +379,8 @@ class GraphManager(JobManager):
                             
                             parentData.analyseLog()
                             parentData.readResults = oldReadingValue
+                            if not parentData.valueForSorting:
+                                continue
                             
                         if not bestParent:
                             bestParent = p
