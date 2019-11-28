@@ -85,6 +85,44 @@ def floatInList( list2test ):
             res.append(i)
     return res
 
+def readG16Inp( oldInput ):
+    oldFile = open(oldInput, 'r')
+    line = oldFile.readline()
+    
+    #route section
+    while not isBlankLine(line):
+        line = oldFile.readline()
+        
+    line = oldFile.readline()
+    #comment
+    while not isBlankLine(line):
+        line = oldFile.readline()
+        
+    line = oldFile.readline() #charges and multiplicity
+    line = oldFile.readline()
+    
+    indexes = []
+    ind = 0
+    coords = []
+    elements = []
+    while not isBlankLine(line):
+        
+        lineSpl = line.split()
+        if lineSpl[1] == "-1":
+            indexes.append(ind)
+            
+        coordInd = floatInList(lineSpl)[-3:]
+        newCoords = [ float(lineSpl[c]) for c in coordInd]
+        coords.append(newCoords)
+        elements.append(lineSpl[0])
+        
+        line = oldFile.readline()
+        ind += 1
+    
+    oldFile.close()
+    
+    return indexes, coords, elements
+
 def getCoordInd( lineSpl ):
     floatInd = floatInList(lineSpl)
 

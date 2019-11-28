@@ -8,9 +8,18 @@ Created on Fri Oct 11 14:08:06 2019
 from os import getcwd, chdir
 from sbatchPy import SbatchManager
 from parsers import getLastCoordsFromLog, writeNewInput, getFreqs, getCheckpointNameFromInput
+from parsers import readG16Inp
 from os.path import join, isfile, expanduser
 from shutil import copyfile
 import json
+from math import sqrt
+
+def dist(coords1, coords2):
+    dist = 0
+    for c1, c2 in zip(coords1, coords2):
+        dist += ( c1 - c2)**2
+        
+    return sqrt(dist)
 
 class JobNode:
     def __init__(self, inputFile, path):
@@ -23,6 +32,8 @@ class JobNode:
         self.software = None
         self.logFile = None
         self.autorestart = False
+        self.distances2measure = []
+        self.measuredDistances = {}
         
     def verifySlurm(self):
         if not self.id:
@@ -144,6 +155,11 @@ class GaussianNode(JobNode):
             self.results.append(zpe.strip())
         
     def verifyLog(self):
+        if hasattr(self, "distances2measure"):
+            if self.distances2measure:
+                self.measureDistances()
+                
+        
         if self.verification == "SP":
             return self.verifySP()
         elif self.verification == "Opt":
@@ -152,6 +168,30 @@ class GaussianNode(JobNode):
             return self.verifyFreq()
         else:
             raise Exception("Not implemented node verification")
+            
+    def measureDistances(self):
+        self.measuredDistances = {}
+        inputPath = join(self.path, self.inputFile)
+        logPath = join(self.path, self.logFile)
+        
+        frozenInd, coords, elements = readG16Inp(inputPath)
+        lastCoords = getLastCoordsFromLog(logPath)
+        
+        for distance in self.distances2measure:
+            a = distance[0]
+            b = distance[1]
+            
+            aElement = elements[a]
+            bElement = elements[b]
+            
+            aCoords = lastCoords[a]
+            bCoords = lastCoords[b]
+            
+            key = aElement+" "+str(a+1) + " - " + bElement + " " +str(b+1)
+            value = dist(aCoords, bCoords)
+            
+            self.measuredDistances[key] = value
+            
     
     def verifySP(self):
         lf = open(join(self.path, self.logFile))

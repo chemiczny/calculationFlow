@@ -242,6 +242,15 @@ class GraphManager(JobManager):
         for node in graph.nodes:
             data = graph.nodes[node]["data"]
             
+            if hasattr(data, "measuredDistances"):
+                if data.measuredDistances:
+                    print("Distances: ")
+                    print(node)
+                    
+                for key in data.measuredDistances:
+                    print(key, data.measuredDistances[key])
+                
+            
             if not hasattr(data, "readResults"):
                 continue
             

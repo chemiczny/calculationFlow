@@ -8,26 +8,47 @@ Created on Fri Oct 11 12:57:02 2019
 
 import networkx as nx
 from os import getcwd
-from os.path import join
+from os.path import join, dirname
 from jobNode import GaussianNode
-from parsers import getGaussianInpFromSlurmFile
+from parsers import getGaussianInpFromSlurmFile, getModredundantSection
 from graphGenerators import addSPcorrections, addZPE
 from graphManager import GraphManager
 import sys
+
+def frozenDistancesFromModredundantSection(modredundantSection):
+    frozenDists = []
+    
+    for line in modredundantSection.split("\n"):
+        if not line:
+            continue
+        
+        lineS = line.split()
+        
+        if lineS[0] != "B":
+            continue
+        
+        if lineS[-1] != "F":
+            continue
+        
+        frozenDists.append( [ int(lineS[1])-1, int(lineS[2])-1 ] )
+        
+    return frozenDists
 
 def generateTSsearchFromGuess(slurmFile, functional = "B3LYP"):
     jobGraph = nx.DiGraph()
     currentDir = getcwd()
     gaussianFile = getGaussianInpFromSlurmFile(slurmFile)
+    modredundantSection = getModredundantSection( join( dirname(slurmFile ) , gaussianFile ) )
+    frozenDists = frozenDistancesFromModredundantSection(modredundantSection)
     
     newNode = GaussianNode(gaussianFile, currentDir)
     newNode.verification = "Opt"
     newNode.slurmFile = slurmFile
     jobGraph.add_node( currentDir , data = newNode )
     
-    return buildTSsearchGraph(jobGraph, currentDir, functional )
+    return buildTSsearchGraph(jobGraph, currentDir, functional, frozenDists )
     
-def buildTSsearchGraph( jobGraph, currentDir, functional = "B3LYP" ):
+def buildTSsearchGraph( jobGraph, currentDir, functional = "B3LYP", frozenDists = [] ):
     newDir = join(currentDir, "freq")
     newNode = GaussianNode("freq.inp", newDir)
     newNode.verification = "SP"
@@ -60,6 +81,7 @@ def buildTSsearchGraph( jobGraph, currentDir, functional = "B3LYP" ):
     lastDir, newDir = newDir, join(currentDir, "freq_verify")
     newNode = GaussianNode("freq_verify.inp", newDir)
     newNode.verification = "Freq"
+    newNode.distances2measure = frozenDists
     newNode.noOfExcpectedImaginaryFrequetions = 1
     newNode.readResults = True
     newNode.structure2dump = "TS.inp"
@@ -81,6 +103,7 @@ def buildTSsearchGraph( jobGraph, currentDir, functional = "B3LYP" ):
     newNode = GaussianNode("irc_reverse.inp", newDir)
     newNode.verification = "SP"
     newNode.copyChk = True
+    newNode.distances2measure = frozenDists
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P """+functional+"""/6-31G(d,p)
@@ -95,6 +118,7 @@ def buildTSsearchGraph( jobGraph, currentDir, functional = "B3LYP" ):
     newNode = GaussianNode("opt.inp", newDir)
     newNode.verification = "Opt"
     newNode.readResults = True
+    newNode.distances2measure = frozenDists
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P """+functional+"""/6-31G(d,p)
@@ -112,6 +136,7 @@ def buildTSsearchGraph( jobGraph, currentDir, functional = "B3LYP" ):
     newNode = GaussianNode("irc_forward.inp", newDir)
     newNode.verification = "SP"
     newNode.copyChk = True
+    newNode.distances2measure = frozenDists
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P """+functional+"""/6-31G(d,p)
@@ -125,6 +150,7 @@ def buildTSsearchGraph( jobGraph, currentDir, functional = "B3LYP" ):
     lastDir , newDir = newDir,  join(newDir, "opt")
     newNode = GaussianNode("opt.inp", newDir)
     newNode.verification = "Opt"
+    newNode.distances2measure = frozenDists
     newNode.readResults = True
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
