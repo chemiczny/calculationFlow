@@ -44,6 +44,7 @@ def generateTSsearchFromGuess(slurmFile, functional = "B3LYP"):
     newNode = GaussianNode(gaussianFile, currentDir)
     newNode.verification = "Opt"
     newNode.slurmFile = slurmFile
+    newNode.autorestart = True
     jobGraph.add_node( currentDir , data = newNode )
     
     return buildTSsearchGraph(jobGraph, currentDir, functional, frozenDists )
@@ -118,6 +119,7 @@ def buildTSsearchGraph( jobGraph, currentDir, functional = "B3LYP", frozenDists 
     newNode = GaussianNode("opt.inp", newDir)
     newNode.verification = "Opt"
     newNode.readResults = True
+#    newNode.autorestart = True
     newNode.distances2measure = frozenDists
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
@@ -152,6 +154,7 @@ def buildTSsearchGraph( jobGraph, currentDir, functional = "B3LYP", frozenDists 
     newNode.verification = "Opt"
     newNode.distances2measure = frozenDists
     newNode.readResults = True
+#    newNode.autorestart = True
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P """+functional+"""/6-31G(d,p)

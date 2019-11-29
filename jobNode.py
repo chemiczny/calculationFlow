@@ -351,7 +351,7 @@ class GaussianNode(JobNode):
         line = lf.readline()
         
         while line:
-            if "New curvilinear step not converged." in line:
+            if "Error imposing constraints" in line:
                 restartThisJob = True
                 break
             elif "FormBX had a problem." in line:
