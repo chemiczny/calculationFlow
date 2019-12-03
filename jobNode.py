@@ -17,7 +17,7 @@ from math import sqrt
 def dist(coords1, coords2):
     dist = 0
     for c1, c2 in zip(coords1, coords2):
-        dist += ( c1 - c2)**2
+        dist += ( float(c1) - float(c2))**2
         
     return sqrt(dist)
 
@@ -125,6 +125,11 @@ class GaussianNode(JobNode):
         self.results = []
         
     def analyseLog(self):
+        if hasattr(self, "distances2measure"):
+            if self.distances2measure:
+                self.measuredDistances = {}
+                self.measureDistances()
+
         if not self.readResults:
             return
         
