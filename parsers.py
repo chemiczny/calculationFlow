@@ -292,3 +292,60 @@ def getFreqs(logFile):
     logF.close()
     
     return freqs
+
+def parseFDynamoCompileScript(compileScript):
+    cs = open(compileScript, 'r')
+    infoLine = cs.readline()
+    cs.close()
+    
+    data = {}
+    data["fDynamoPath"] = infoLine.split()[2]
+    inputFile = infoLine.split("=")[-1]
+    
+    data["inputFile"] = inputFile
+    
+    fortFile = open(inputFile, 'r')
+    
+    data["qmSele"] = ""
+    
+    line = fortFile.readline()
+    while line:
+        if "mm_file_process" in line:
+            data["forceField"] = line.split('"')[3]
+        elif "mm_system_construct" in line:
+            data["sequence"] = line.split('"')[3]
+        elif "coordinates_read" in line and not "coordsIn" in data:
+            data["coordsIn"] = line.split('"')[1]
+        elif "atom_selection" in line:
+                   
+            while "&" in line:
+                data["qmSele"] += line
+                line = fortFile.readline()
+                
+            data["qmSele"] += line
+                
+        elif "mopac_setup" in line :
+            
+            while "&" in line:
+                if "method" in line:
+                    data["method"] = line.split("'")[1]
+                elif "charge" in line:
+                    data["charge"] = line.split("=")[1].split(",")[0]
+                
+                line = fortFile.readline()
+            
+        elif "coordinates_write" in line:
+            data["coordsOut"] = line.split('"')[1]
+        
+        
+        line = fortFile.readline()
+    
+    fortFile.close()
+
+    data["flexiblePart"] = "in20.f90"
+    data["qmSele"] = data["qmSele"].strip()+"\n"
+    
+    return data    
+    
+    
+    
