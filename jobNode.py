@@ -60,7 +60,7 @@ class JobNode:
         
         chdir(self.path)
         if not self.slurmFile:
-            self.writeSlurmFile("run.slurm")
+            self.writeSlurmScript("run.slurm")
             
         sm = SbatchManager()
         self.id = sm.sbatchPy(self.slurmFile, "Controlled by graph")

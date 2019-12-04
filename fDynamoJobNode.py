@@ -79,14 +79,16 @@ class FDynamoNode(JobNode):
             
         
     def verifyLog(self):
+        res = True
         if "SP" in self.verification:
-            return self.verifySP()
-        elif "Opt" in self.verification:
-            return self.verifyOpt()
-        elif "Freq" in self.verification:
-            return self.verifyFreq()
-        else:
-            raise Exception("Not implemented node verification")
+            res = res and self.verifySP()
+        if "Opt" in self.verification:
+            res = res and self.verifyOpt()
+        if "Freq" in self.verification:
+            res = res and self.verifyFreq()
+
+        return res
+        
     
     def verifySP(self):
         lf = open(join(self.path, self.logFile))
@@ -114,9 +116,7 @@ class FDynamoNode(JobNode):
         result=False
         while line:
             
-            if "-- Stationary point found." in line:
-                print("-- Stationary point found.")
-                result = True
+            if "Baker Search Status:" in line:
                 break
             
             line =lf.readline()
@@ -124,21 +124,9 @@ class FDynamoNode(JobNode):
             lf.close()
             return result
         
-        # lf.seek(0, 2)
-        # lf.seek(-100, 2)
-        
-        result = False
-        line = lf.readline()
-        while line:
-            
-            if "Normal termination of Gaussian" in line:
-                print("\tNormal termination of Gaussian")
-                result = True
-                break
-            
-            line =lf.readline()
-        
-        lf.close()
+        if "Gradient tolerance reached." in line:
+            result = True
+
         return result
     
     def verifyFreq(self):
@@ -188,11 +176,17 @@ class FDynamoNode(JobNode):
         
         return True
         
-    def writeSlurmScript( self, filename, processors, time):
+    def writeSlurmScript( self, filename, processors = "", time = ""):
         fullPath = join(self.path, filename)
         slurmFile = open(fullPath, 'w')
         
         slurmConfig = self.readSlurmConfig()
+
+        if not processors:
+            processors = str(self.processors)
+
+        if not time:
+            time = self.time
         
         if not "firstLine" in slurmConfig:
             slurmFile.write("#!/bin/env bash\n")
@@ -285,7 +279,7 @@ class FDynamoNode(JobNode):
         inputTemplate = inputTemplateFile.read()
         inputTemplateFile.close()
         
-        formatDict = { "forcefield" : self.forcefield, "sequence" : self.sequence,
+        formatDict = { "forcefield" : self.forceField, "sequence" : self.sequence,
                       "coordsIn" : self.coordsIn, "coordsOut" : self.coordsOut ,
                       "method" : self.method, "charge" : self.charge,
                       "qmSele" : self.qmSele, "flexiblePart" : self.flexiblePart}

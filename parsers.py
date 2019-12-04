@@ -300,7 +300,7 @@ def parseFDynamoCompileScript(compileScript):
     
     data = {}
     data["fDynamoPath"] = infoLine.split()[2]
-    inputFile = infoLine.split("=")[-1]
+    inputFile = infoLine.split("=")[-1].strip()
     
     data["inputFile"] = inputFile
     

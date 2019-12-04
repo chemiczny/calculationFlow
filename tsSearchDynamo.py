@@ -20,6 +20,8 @@ def generateTSsearchDynamo(compFile):
     data = parseFDynamoCompileScript(compFile)
     
     newNode = FDynamoNode(data["inputFile"], currentDir)
+    newNode.coordsIn = data["coordsIn"]
+    newNode.coordsOut = data["coordsOut"]
     newNode.verification = [ "Opt" , "Freq" ]
     newNode.slurmFile = None
     newNode.autorestart = False
@@ -34,6 +36,7 @@ def generateTSsearchDynamo(compFile):
     newNode.additionalKeywords = { "ts_search" : "true" }
     
     jobGraph.add_node( currentDir , data = newNode )
+    newNode.compileInput()
     
     return buildTSsearchGraphDynamo(jobGraph, currentDir )
     
@@ -43,6 +46,8 @@ def buildTSsearchGraphDynamo( jobGraph, currentDir):
     newNode.verification = ["SP"]
     newNode.templateKey = "QMMM_irc_mopac"
     newNode.additionalKeywords = { "IRC_dir" : "-1" }
+    newNode.coordsIn = "coordsStart.crd"
+    newNode.coordsOut = "coordsDone.crd"
     
 
     jobGraph.add_node(newDir, data = newNode)
@@ -50,11 +55,13 @@ def buildTSsearchGraphDynamo( jobGraph, currentDir):
     
     optDir = join(newDir, "opt")
     
-    newNode = FDynamoNode("opt.f90", newDir)
+    newNode = FDynamoNode("opt.f90", optDir)
     newNode.verification = ["Opt", "Freq"]
     newNode.noOfExcpectedImaginaryFrequetions = 0
-    newNode.templateKey = "QMMM_opt"
+    newNode.templateKey = "QMMM_opt_mopac"
     newNode.additionalKeywords = { "ts_search" : "false" }
+    newNode.coordsIn = "coordsStart.crd"
+    newNode.coordsOut = "coordsDone.crd"
     
 
     jobGraph.add_node(optDir, data = newNode)
@@ -65,6 +72,8 @@ def buildTSsearchGraphDynamo( jobGraph, currentDir):
     newNode.verification = ["SP"]
     newNode.templateKey = "QMMM_irc_mopac"
     newNode.additionalKeywords = { "IRC_dir" : "1" }
+    newNode.coordsIn = "coordsStart.crd"
+    newNode.coordsOut = "coordsDone.crd"
     
 
     jobGraph.add_node(newDir, data = newNode)
@@ -72,11 +81,13 @@ def buildTSsearchGraphDynamo( jobGraph, currentDir):
     
     optDir = join(newDir, "opt")
     
-    newNode = FDynamoNode("opt.f90", newDir)
+    newNode = FDynamoNode("opt.f90", optDir)
     newNode.verification = ["Opt", "Freq"]
     newNode.noOfExcpectedImaginaryFrequetions = 0
-    newNode.templateKey = "QMMM_opt"
+    newNode.templateKey = "QMMM_opt_mopac"
     newNode.additionalKeywords = { "ts_search" : "false" }
+    newNode.coordsIn = "coordsStart.crd"
+    newNode.coordsOut = "coordsDone.crd"
     
 
     jobGraph.add_node(optDir, data = newNode)
