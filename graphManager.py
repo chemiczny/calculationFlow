@@ -13,7 +13,7 @@ from copy import deepcopy
 from shutil import copyfile
 import pickle
 import sys
-from os import mkdir
+from os import mkdirs
 import networkx as nx
 from collections import defaultdict
 
@@ -452,7 +452,7 @@ class GraphManager(JobManager):
         for node in nx.topological_sort(graph):
             if not isdir(node):
                 print("creating: ", node)
-                mkdir(node)
+                mkdirs(node)
             else:
                 print("already exist: ", node)
         

@@ -10,6 +10,7 @@ from jobNode import JobNode
 from os.path import join, isfile, expanduser
 from shutil import copyfile
 from os import getcwd, chdir, system
+from crdParser import getCoords, dist, atomsFromAtomSelection
 
 class FDynamoNode(JobNode):
     def __init__(self, inputFile, path):
@@ -21,7 +22,8 @@ class FDynamoNode(JobNode):
         
         self.templateDict = { "QMMM_opt_mopac" : [ "QMMM_opt.f90", "panadero.f90" ], 
                              "QMMM_irc_mopac" : [ "IRC.f90", "mep_project.f90" ] ,
-                             "QMMM_scan1D_mopac" : [ "scan1D.f90" ] }
+                             "QMMM_scan1D_mopac" : [ "scan1D.f90" ],
+                             "QMMM_pmf" : [ "pmf.f90" ] }
         
         self.noOfExcpectedImaginaryFrequetions = -1
         self.processors = 1
@@ -46,6 +48,7 @@ class FDynamoNode(JobNode):
         self.coordsOut = ""
         
         self.anotherCoordsSource = ""
+        self.readInitialScanCoord = False
         
     def rebuild(self, inputFile, path, slurmFile):
         self.inputFile = inputFile
@@ -308,6 +311,12 @@ class FDynamoNode(JobNode):
         
         chdir(lastDir)
         
+    def readInitialCoord(self):
+        atoms = atomsFromAtomSelection( self.additionalKeywords["definedAtoms"] )
+        getCoords( join(self.path, self.inputFile), atoms)
+        
+        return dist(atoms[0], atoms[1]) - dist(atoms[1], atoms[2])
+        
     def generateInput(self):
         templateDir = expanduser("~/jobManagerPro/fDYNAMO")
         files2process = self.templateDict[ self.templateKey ]
@@ -321,6 +330,9 @@ class FDynamoNode(JobNode):
         inputTemplateFile = open(join(templateDir, self.inputFile), 'r')
         inputTemplate = inputTemplateFile.read()
         inputTemplateFile.close()
+        
+        if "coordScanStart" in self.additionalKeywords and self.readInitialScanCoord:
+            self.additionalKeywords["coordScanStart"] = self.readInitialCoord()
         
         formatDict = { "forcefield" : self.forceField, "sequence" : self.sequence,
                       "coordsIn" : self.coordsIn, "coordsOut" : self.coordsOut ,
