@@ -307,6 +307,7 @@ def parseFDynamoCompileScript(compileScript):
     fortFile = open(inputFile, 'r')
     
     data["qmSele"] = ""
+    data["definedAtoms"] = ""
     
     line = fortFile.readline()
     while line:
@@ -337,13 +338,18 @@ def parseFDynamoCompileScript(compileScript):
         elif "coordinates_write" in line:
             data["coordsOut"] = line.split('"')[1]
         
-        
+        elif "atom_number(" in line:
+            data["definedAtoms"] += line
+            
         line = fortFile.readline()
     
     fortFile.close()
 
     data["flexiblePart"] = "in20.f90"
     data["qmSele"] = data["qmSele"].strip()+"\n"
+    
+    if data["definedAtoms"]:
+        data["definedAtoms"] = data["definedAtoms"].strip()+"\n"
     
     return data    
     

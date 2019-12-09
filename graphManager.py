@@ -425,15 +425,15 @@ class GraphManager(JobManager):
                 
     def jobIsFinished(self, nodeData, results):
         nodeId = nodeData.id
-        nodeStatus = None
+#        nodeStatus = None
         for status in results["RunningOrWaiting"]:
             if status["jobID"] == nodeId:
                 return False
                 
-        if not nodeStatus:
-            for status in results["Finished"]:
-                if status["jobID"] == nodeId:
-                    return True
+#        if not nodeStatus:
+#            for status in results["Finished"]:
+#                if status["jobID"] == nodeId:
+#                    return True
                 
         return True
 #        raise Exception("Job is lost!")

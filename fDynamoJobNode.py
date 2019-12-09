@@ -20,7 +20,8 @@ class FDynamoNode(JobNode):
         self.additionalKeywords = {}
         
         self.templateDict = { "QMMM_opt_mopac" : [ "QMMM_opt.f90", "panadero.f90" ], 
-                             "QMMM_irc_mopac" : [ "IRC.f90", "mep_project.f90" ]  }
+                             "QMMM_irc_mopac" : [ "IRC.f90", "mep_project.f90" ] ,
+                             "QMMM_scan1D_mopac" : [ "scan1D.f90" ] }
         
         self.noOfExcpectedImaginaryFrequetions = -1
         self.processors = 1
@@ -43,6 +44,8 @@ class FDynamoNode(JobNode):
         
         self.coordsIn = ""
         self.coordsOut = ""
+        
+        self.anotherCoordsSource = ""
         
     def rebuild(self, inputFile, path, slurmFile):
         self.inputFile = inputFile
@@ -86,9 +89,45 @@ class FDynamoNode(JobNode):
             res = res and self.verifyOpt()
         if "Freq" in self.verification:
             res = res and self.verifyFreq()
+        if "scan1D" in self.verification:
+            res = res and self.verifyScan1D()
 
         return res
         
+    def verifyScan1D(self):
+        scanFile = join(self.path, "fort.900" )
+        if not isfile(scanFile):
+            raise Exception("File with scan results not found")
+            
+        coordIndex = 0
+        sf = open(scanFile, 'r')
+        
+        line = sf.readline()
+        highestEnergy = float(line.split()[1])
+        highestIndex = coordIndex
+        while line:
+            
+            energy = float(line.split()[1])
+            if energy > highestEnergy:
+                highestEnergy = energy
+                highestIndex = coordIndex
+            
+            line = sf.readline()
+            coordIndex += 1
+        
+        sf.close()
+        
+        coordsOut = ""
+        
+        if isfile( join(self.path, "seed."+str(highestIndex)) ):
+            coordsOut = "seed."+str(highestIndex)
+            
+        elif isfile( join(self.path, "seed.-"+str(highestIndex)) ):
+            coordsOut = "seed.-"+str(highestIndex)
+            
+        self.coordsOut = coordsOut
+        
+        return True
     
     def verifySP(self):
         lf = open(join(self.path, self.logFile))
@@ -238,7 +277,11 @@ class FDynamoNode(JobNode):
             self.sequence = parent.sequence
         
         if self.getCoordsFromParent:
-            copyfile(join(parent.path, parent.coordsOut), join(self.path, self.coordsIn))
+            if self.anotherCoordsSource:
+                copyfile(join(parent.path, self.anotherCoordsSource), join(self.path, self.coordsIn))
+            else:
+                copyfile(join(parent.path, parent.coordsOut), join(self.path, self.coordsIn))
+                
             copyfile(join(parent.path, parent.forceField), join(self.path, self.forceField))
             copyfile(join(parent.path, parent.flexiblePart), join(self.path, self.flexiblePart))
             copyfile(join(parent.path, parent.sequence), join(self.path, self.sequence))
