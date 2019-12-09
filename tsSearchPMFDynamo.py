@@ -53,6 +53,7 @@ def getCoords(structure, atoms):
             
             if currentSubsystemName in atomDict:
                 residues2find = atomDict[currentSubsystemName]
+                # print("znalazlem szukany subsystem ", currentSubsystemName)
             else:
                 residues2find = {}
                 
@@ -67,6 +68,7 @@ def getCoords(structure, atoms):
             
             if currentResidueId in residues2find:
                 atoms2find = residues2find[currentResidueId]
+                # print("znalazlem szukana reszte ", currentResidueId)
             else:
                 atoms2find = {}
             
@@ -82,6 +84,7 @@ def getCoords(structure, atoms):
                 if atomName in atoms2find:
                     atom = atoms2find[atomName]
                     atom.coords = [ float(c) for c in lineSpl[-3:] ]
+                    print(atom.atom, atom.coords)
                 
                 
         line = source.readline()
@@ -89,17 +92,17 @@ def getCoords(structure, atoms):
     source.close()
 
 def atomsFromAtomSelection( atomSelection ):
-    atoms = {}
+    atoms = []
     
     for line in atomSelection.split("\n"):
-        if not line.strip():
+        if not "=" in line:
             continue
         
         lineS = line.split("=")
-        subsystem = lineS[1].split("'")[1]
-        residueNumber = int(lineS[2].split(",")[0])
-        atomName = int(lineS[3].split(")")[0]) 
-    
+        subsystem = lineS[2].split("'")[1]
+        residueNumber = int(lineS[3].split(",")[0])
+        atomName = lineS[4].split("'")[1]
+        print("newAtom ", subsystem, residueNumber, atomName)
         atoms.append( atomID(subsystem, residueNumber, atomName) )
         
     return atoms
@@ -108,7 +111,8 @@ def generateTSsearchDynamoPMF(compFile):
     jobGraph = nx.DiGraph()
     currentDir = getcwd()
     data = parseFDynamoCompileScript(compFile)
-    
+
+
     definedAtoms = data["definedAtoms"]
     atoms = atomsFromAtomSelection(definedAtoms)
     getCoords( data["coordsIn"], atoms)
@@ -129,14 +133,15 @@ def generateTSsearchDynamoPMF(compFile):
     newNode.fDynamoPath = data["fDynamoPath"]
     newNode.charge = data["charge"]
     newNode.method = data["method"]
-    newNode.additionalKeywords = { "scanDir" : "", "coordScanStart" : str(initialCoord) , "iterNo" : "70"}
+    newNode.additionalKeywords = { "scanDir" : "+", "coordScanStart" : str(initialCoord) ,
+         "iterNo" : "70", "definedAtoms" : definedAtoms}
     
     jobGraph.add_node( currentDir , data = newNode )
     newNode.generateInput()
     newNode.compileInput()
     
     
-    currentDir = join(currentDir, "ts_search")
+    startDir, currentDir = currentDir, join(currentDir, "ts_search")
     newNode = FDynamoNode("tsSearch.f90", currentDir)
     newNode.verification = ["Opt"]
     newNode.templateKey = "QMMM_opt_mopac"
@@ -144,6 +149,8 @@ def generateTSsearchDynamoPMF(compFile):
     newNode.coordsIn = "coordsStart.crd"
     newNode.coordsOut = "coordsDone.crd"
     
+    jobGraph.add_node(currentDir, data = newNode)
+    jobGraph.add_edge(startDir, currentDir)
     
     newDir = join(currentDir, "irc_reverse")
     newNode = FDynamoNode("irc_reverse.f90", newDir)

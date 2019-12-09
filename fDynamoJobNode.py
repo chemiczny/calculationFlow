@@ -119,8 +119,8 @@ class FDynamoNode(JobNode):
         
         coordsOut = ""
         
-        if isfile( join(self.path, "seed."+str(highestIndex)) ):
-            coordsOut = "seed."+str(highestIndex)
+        if isfile( join(self.path, "seed.+"+str(highestIndex)) ):
+            coordsOut = "seed.+"+str(highestIndex)
             
         elif isfile( join(self.path, "seed.-"+str(highestIndex)) ):
             coordsOut = "seed.-"+str(highestIndex)

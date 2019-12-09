@@ -317,7 +317,7 @@ def parseFDynamoCompileScript(compileScript):
             data["sequence"] = line.split('"')[3]
         elif "coordinates_read" in line and not "coordsIn" in data:
             data["coordsIn"] = line.split('"')[1]
-        elif "atom_selection" in line:
+        elif "atom_selection" in line and "acs" in line:
                    
             while "&" in line:
                 data["qmSele"] += line
