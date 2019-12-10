@@ -48,7 +48,8 @@ def generateTSsearchDynamoPMF(compFile):
     ################## TS SEARCH #####################################
     startDir, currentDir = currentDir, join(currentDir, "ts_search")
     newNode = FDynamoNode("tsSearch.f90", currentDir)
-    newNode.verification = ["Opt"]
+    newNode.verification = ["Opt" , "Freq"]
+    newNode.noOfExcpectedImaginaryFrequetions = 1
     newNode.templateKey = "QMMM_opt_mopac"
     newNode.additionalKeywords = { "ts_search" : "true" }
     newNode.coordsIn = "coordsStart.crd"
@@ -117,7 +118,7 @@ def generateTSsearchDynamoPMF(compFile):
     
     reverseScan = join(startDir, "TS1reverseScan")
     
-    newNode = FDynamoNode("scan.f90", optDir)
+    newNode = FDynamoNode("scan.f90", reverseScan)
     newNode.verification = ["scan1D"]
     newNode.templateKey = "QMMM_scan1D_mopac"
     newNode.readInitialScanCoord = True
@@ -145,9 +146,9 @@ def generateTSsearchDynamoPMF(compFile):
         jobGraph.add_node(stepDir, data = newNode)
         jobGraph.add_edge( reverseScan, stepDir)
         
-    forwardScan = join(startDir, "TS1reverseScan")
+    forwardScan = join(startDir, "TS1forwardScan")
     
-    newNode = FDynamoNode("scan.f90", optDir)
+    newNode = FDynamoNode("scan.f90", forwardScan)
     newNode.verification = ["scan1D"]
     newNode.templateKey = "QMMM_scan1D_mopac"
     newNode.readInitialScanCoord = True
@@ -172,7 +173,7 @@ def generateTSsearchDynamoPMF(compFile):
         newNode.coordsIn = "seed.+"+str(i)
         
         jobGraph.add_node(stepDir, data = newNode)
-        jobGraph.add_edge( reverseScan, stepDir)
+        jobGraph.add_edge( forwardScan, stepDir)
     
     
     return jobGraph

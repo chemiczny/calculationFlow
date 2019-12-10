@@ -313,7 +313,7 @@ class FDynamoNode(JobNode):
         
     def readInitialCoord(self):
         atoms = atomsFromAtomSelection( self.additionalKeywords["definedAtoms"] )
-        getCoords( join(self.path, self.inputFile), atoms)
+        getCoords( join(self.path, self.coordsIn), atoms)
         
         return dist(atoms[0], atoms[1]) - dist(atoms[1], atoms[2])
         

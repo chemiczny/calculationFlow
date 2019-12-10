@@ -46,7 +46,6 @@ def getCoords(structure, atoms):
             
             if currentSubsystemName in atomDict:
                 residues2find = atomDict[currentSubsystemName]
-                # print("znalazlem szukany subsystem ", currentSubsystemName)
             else:
                 residues2find = {}
                 
@@ -61,7 +60,6 @@ def getCoords(structure, atoms):
             
             if currentResidueId in residues2find:
                 atoms2find = residues2find[currentResidueId]
-                # print("znalazlem szukana reszte ", currentResidueId)
             else:
                 atoms2find = {}
             
@@ -77,7 +75,6 @@ def getCoords(structure, atoms):
                 if atomName in atoms2find:
                     atom = atoms2find[atomName]
                     atom.coords = [ float(c) for c in lineSpl[-3:] ]
-                    print(atom.atom, atom.coords)
                 
                 
         line = source.readline()
@@ -95,7 +92,7 @@ def atomsFromAtomSelection( atomSelection ):
         subsystem = lineS[2].split("'")[1]
         residueNumber = int(lineS[3].split(",")[0])
         atomName = lineS[4].split("'")[1]
-        print("newAtom ", subsystem, residueNumber, atomName)
+
         atoms.append( atomID(subsystem, residueNumber, atomName) )
         
     return atoms
