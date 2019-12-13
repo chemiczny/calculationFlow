@@ -76,7 +76,7 @@ class GraphManager(JobManager):
 
         if not isdir(newNode):
             print("creating: ", newNode)
-            mkdir(newNode)
+            makedirs(newNode)
 
         copyfile(  join(data.path, data.slurmFile), join( newNodeData.path, newNodeData.slurmFile ) )
         
