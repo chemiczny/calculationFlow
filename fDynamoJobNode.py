@@ -50,6 +50,8 @@ class FDynamoNode(JobNode):
         self.anotherCoordsSource = ""
         self.readInitialScanCoord = False
         
+        self.measureRCinOutput = False
+        
     def rebuild(self, inputFile, path, slurmFile):
         self.inputFile = inputFile
         self.path = path
@@ -94,6 +96,18 @@ class FDynamoNode(JobNode):
             res = res and self.verifyFreq()
         if "scan1D" in self.verification:
             res = res and self.verifyScan1D()
+
+        if hasattr(self, "measureRCinOutput"):
+            if self.measureRCinOutput:
+                atoms = atomsFromAtomSelection( self.additionalKeywords["definedAtoms"] )
+                getCoords( join(self.path, self.coordsOut), atoms)
+                
+                rc =  dist(atoms[0], atoms[1]) - dist(atoms[1], atoms[2])
+                
+                if rc < 0 :
+                    copyfile( join(self.path, self.coordsOut), join(self.path, "RC_negative_" + self.coordsOut) )
+                else:
+                    copyfile( join(self.path, self.coordsOut), join(self.path, "RC_positive_" + self.coordsOut) )
 
         return res
         
@@ -252,31 +266,31 @@ class FDynamoNode(JobNode):
         self.slurmFile = filename
         
     def generateFromParent(self, parent):        
-        if not self.qmSele:
+        if not self.qmSele and hasattr(parent, "qmSele"):
             self.qmSele = parent.qmSele
             
-        if not self.coordsIn:
+        if not self.coordsIn and hasattr(parent, "coordsIn"):
             self.coordsIn = parent.coordsIn
             
-        if not self.coordsOut:
+        if not self.coordsOut and hasattr(parent, "coordsOut"):
             self.coordsOut = parent.coordsOut
             
-        if not self.method:
+        if not self.method and hasattr(parent, "method"):
             self.method = parent.method
             
-        if not self.charge:
+        if not self.charge and hasattr(parent, "charge"):
             self.charge = parent.charge
             
-        if not self.fDynamoPath:
+        if not self.fDynamoPath and hasattr(parent, "fDynamoPath"):
             self.fDynamoPath = parent.fDynamoPath
             
-        if not self.forceField:
+        if not self.forceField and hasattr(parent, "forceField"):
             self.forceField = parent.forceField
             
-        if not self.flexiblePart:
+        if not self.flexiblePart and hasattr(parent, "flexiblePart"):
             self.flexiblePart = parent.flexiblePart
             
-        if not self.sequence:
+        if not self.sequence and hasattr(parent, "sequence"):
             self.sequence = parent.sequence
         
         if self.getCoordsFromParent:

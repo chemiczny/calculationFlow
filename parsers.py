@@ -5,6 +5,7 @@ Created on Mon Oct 14 10:43:20 2019
 
 @author: michal
 """
+from os.path import join, dirname
 
 def getGaussianInpFromSlurmFile(slurmFile):
     sf = open(slurmFile)
@@ -294,6 +295,7 @@ def getFreqs(logFile):
     return freqs
 
 def parseFDynamoCompileScript(compileScript):
+    compDir = dirname(compileScript)
     cs = open(compileScript, 'r')
     infoLine = cs.readline()
     cs.close()
@@ -304,7 +306,7 @@ def parseFDynamoCompileScript(compileScript):
     
     data["inputFile"] = inputFile
     
-    fortFile = open(inputFile, 'r')
+    fortFile = open( join(compDir, inputFile), 'r')
     
     data["qmSele"] = ""
     data["definedAtoms"] = ""

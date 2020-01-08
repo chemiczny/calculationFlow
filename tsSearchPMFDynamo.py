@@ -13,7 +13,7 @@ from fDynamoJobNode import FDynamoNode
 from parsers import parseFDynamoCompileScript
 from graphManager import GraphManager
 import sys
-from crdParser import getCoords, dist, atomsFromAtomSelection
+#from crdParser import getCoords, dist, atomsFromAtomSelection
 
 def generateTSsearchDynamoPMF(compFile):
     jobGraph = nx.DiGraph()

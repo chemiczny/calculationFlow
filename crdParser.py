@@ -96,3 +96,19 @@ def atomsFromAtomSelection( atomSelection ):
         atoms.append( atomID(subsystem, residueNumber, atomName) )
         
     return atoms
+
+def getSymmetryData( crdFile ):
+    cf = open(crdFile, 'r')
+    
+    line = cf.readline()
+    boxl = None
+    while line:
+        
+        if "Symmetry" in line:
+            line = cf.readline()
+            boxl = line.strip()
+        
+        line = cf.readline()
+    
+    cf.close()
+    return boxl
