@@ -14,6 +14,8 @@ from fDynamoJobNode import FDynamoNode
 from jobNode import JobNode
 from glob import glob
 from os.path import dirname, join, abspath
+from os import getcwd, makedirs
+from graphManager import GraphManager
 import heapq
 import ecmb
 
@@ -22,7 +24,7 @@ class FrameData:
         self.crd = crdFilename
         self.dcd = dcdFilename
         self.frame = frameNo
-        self.rc = reactionCoord
+        self.rcDiff = reactionCoord
 
 def getTScoords( whamLog ):
     wl = open(whamLog, 'r')
@@ -55,10 +57,12 @@ def findNstrClosest2rc( rc, n , selectedAtoms ):
     dcdFiles = glob("pmf*/pmf.trj")
     
     closestFrames = []
-    for dcd in dcdFiles:
+    dcdNo = len(dcdFiles)
+    for i, dcd in enumerate(dcdFiles, 1):
         dcdDirname = dirname(dcd)
         crdFiles = glob( join( dcdDirname, "*crd*" ) )
-        
+        print("Analysing ...", dcd , i , "/", dcdNo)
+
         if len(crdFiles) != 1:
             print("WTF?! to many crd files")
             quit()
@@ -67,7 +71,7 @@ def findNstrClosest2rc( rc, n , selectedAtoms ):
         
         closestFrames += findNstrClose2rcDCD( rc, n, crd, dcd, selectedAtoms )
         
-    return heapq.nsmallest( n, closestFrames, key = lambda x : x.rc )
+    return heapq.nsmallest( n, closestFrames, key = lambda x : x.rcDiff )
             
 def findNstrClose2rcDCD( rc, n, crdFile, dcdFile, selectedAtoms ):
     mol=ecmb.Molec()
@@ -82,17 +86,17 @@ def findNstrClose2rcDCD( rc, n, crdFile, dcdFile, selectedAtoms ):
     strList = []
     
     while mol.dcd_next():
-        dist1 = ecmb.Dist( mol.crd(a1) , mol.crd(a2) )
-        dist2 = ecmb.Dist( mol.crd(a2) , mol.crd(a3) )
+        dist1 = ecmb.Dist( mol.crd[a1] , mol.crd[a2] )
+        dist2 = ecmb.Dist( mol.crd[a2] , mol.crd[a3] )
         
-        strList.append( FrameData(crdFile, dcdFile, index, dist1 - dist2 ) )
+        strList.append( FrameData(crdFile, dcdFile, index, abs( dist1 - dist2 - rc )) )
         
         index += 1
         
     mol.dcd_close()
-    return heapq.nsmallest( n, strList, key = lambda x : x.rc )
+    return heapq.nsmallest( n, strList, key = lambda x : x.rcDiff )
     
-def buildGraph( rc, definedAtoms, dir2start, dynamoData, dynamoFilesDir ):
+def buildGraph( rc, definedAtoms, dir2start, dynamoData, dynamoFilesDir, tsNo ):
     jobGraph = nx.DiGraph()
     
     dynamoData["filesDir"] = dynamoFilesDir
@@ -101,12 +105,15 @@ def buildGraph( rc, definedAtoms, dir2start, dynamoData, dynamoFilesDir ):
     newNode.status = "finished"
     jobGraph.add_node(dir2start, data = newNode)
     
-    bestStr = findNstrClosest2rc( rc, 15, definedAtoms )
+    bestStr = findNstrClosest2rc( rc, tsNo, definedAtoms )
     
     for i, structure in enumerate( bestStr ):
+        print("Structure for TS search ", structure.dcd, structure.frame)
         newDir = join( dir2start,  "TS_"+str(i) )
         
         addTSsearch(jobGraph, dir2start, newDir, dynamoData, structure, i )
+
+    return jobGraph
         
 def saveCrdFromDCD( destiny, dcdFrame ):
     mol=ecmb.Molec()
@@ -129,6 +136,7 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index):
     newNode.additionalKeywords = { "ts_search" : "true" }
     newNode.coordsIn = "coordsIn.crd"
     
+    makedirs(currentDir)
     saveCrdFromDCD( join(currentDir, "coordsIn.crd"), initialGeom )
     
     newNode.coordsOut = "coordsDone.crd"
@@ -202,17 +210,35 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index):
     
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
+    if len(sys.argv) != 4:
         print("Usage: graphTSsearchWHAM wham.log compileScanScript.sh numberOfTS2find")
     else:
         whamLog = sys.argv[1]
         compileScript = sys.argv[2]
+        TSno = int(sys.argv[3])
         
         tsReactionCoord = getTScoords(whamLog)
+        print("Found reaction coordinate: ", tsReactionCoord)
         data = parseFDynamoCompileScript(compileScript)
         definedAtoms = data["definedAtoms"]
         atoms = atomsFromAtomSelection( definedAtoms)
-        
-        buildGraph(tsReactionCoord, atoms, "multiTSsearch", data, abspath(dirname(compileScript)))
+
+        currentDir = abspath(dirname(compileScript))
+
+        graphDir = join( getcwd(), "multiTSsearch" )
+
+        sm = GraphManager()
+        graph = sm.isGraphHere(graphDir)
+        if not graph:
+            newGraph = jobGraph = buildGraph(tsReactionCoord, atoms, graphDir, data, currentDir, TSno)
+    
+            
+            result = sm.addGraph(newGraph, graphDir)
+            if result:
+                sm.buildGraphDirectories(newGraph)
+                sm.saveGraphs()
+            print("Created new graph")
+        else:
+            print("Cannot create more than one graph in the same directory")
         
         
