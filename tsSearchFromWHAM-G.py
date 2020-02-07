@@ -123,7 +123,7 @@ def buildGraph( rc, definedAtoms, dir2start, dynamoData, dynamoFilesDir, tsNo, m
     jobGraph = nx.DiGraph()
     
     dynamoData["filesDir"] = dynamoFilesDir
-    dynamoData["fDynamoPath"] = "/net/people/plgglanow/fortranPackages/AMBER-g09/AMBER-dynamo/makefile"
+    # dynamoData["fDynamoPath"] = "/net/people/plgglanow/fortranPackages/AMBER-g09/AMBER-dynamo/makefile"
     gaussianFlexibleSele = rewriteFlexibleSeleFile(  join(dynamoFilesDir, dynamoData["flexiblePart"]) )
     
     newNode = JobNode(None, dir2start)
@@ -182,14 +182,16 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     jobGraph.add_node(currentDir, data = newNode)
     jobGraph.add_edge(rootDir, currentDir)
     
-    newDir = join(currentDir, "ts_gaussian")
+    am1Dir = currentDir
+    currentDir = join(currentDir, "ts_gaussian")
     if not isdir(currentDir):
         makedirs(currentDir)
         
-    newNode = FDynamoNode("tsSearch", newDir)
+    newNode = FDynamoNode("tsSearch", currentDir)
     newNode.verification = ["Opt" , "Freq"]
     newNode.noOfExcpectedImaginaryFrequetions = 1
     newNode.templateKey = "QMMM_opt_gaussian"
+    newNode.fDynamoPath = "/net/people/plgglanow/fortranPackages/AMBER-g09/AMBER-dynamo/makefile"
     newNode.additionalKeywords =  { "ts_search" : "true", "method" : method, "basis" : basis , "multiplicity" : 1 }
     newNode.coordsIn = "coordsStart.crd"
     newNode.coordsOut = "coordsDone.crd"
@@ -201,8 +203,8 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     newNode.time = "24:00:00"
     
 
-    jobGraph.add_node(newDir, data = newNode)
-    jobGraph.add_edge(currentDir, newDir)
+    jobGraph.add_node(currentDir, data = newNode)
+    jobGraph.add_edge(am1Dir, currentDir)
     
     
     newDir = join(currentDir, "irc_reverse")
