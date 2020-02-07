@@ -24,7 +24,7 @@ class FDynamoNode(JobNode):
                              "QMMM_irc_mopac" : [ "IRC.f90", "mep_project.f90" ] ,
                              "QMMM_scan1D_mopac" : [ "scan1D.f90" ],
                              "QMMM_pmf" : [ "pmf.f90" ] ,
-                             "QMMMM_opt_gaussian" : [ "QMMM_opt_Gauss.f90", "panadero.f90", "keep_log", "with_gaussian.f90" ],
+                             "QMMM_opt_gaussian" : [ "QMMM_opt_Gauss.f90", "panadero.f90", "keep_log", "with_gaussian.f90" ],
                              "QMMM_irc_gaussian" : [ "IRC_Gauss.f90" , "mep_project.f90", "keep_log", "with_gaussian.f90" ],
                              "QMMM_sp_gaussian" : [ "SP_Gauss.f90", "keep_log", "with_gaussian.f90"  ] }
         

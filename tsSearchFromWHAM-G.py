@@ -13,7 +13,7 @@ import networkx as nx
 from fDynamoJobNode import FDynamoNode
 from jobNode import JobNode
 from glob import glob
-from os.path import dirname, join, abspath, basename
+from os.path import dirname, join, abspath, basename, isdir
 from os import getcwd, makedirs
 from graphManager import GraphManager
 import heapq
@@ -123,7 +123,7 @@ def buildGraph( rc, definedAtoms, dir2start, dynamoData, dynamoFilesDir, tsNo, m
     jobGraph = nx.DiGraph()
     
     dynamoData["filesDir"] = dynamoFilesDir
-    dynamoData["fDynamoPath"] = "/net/people/plgglanow/fortranPackages/AMBER-FF/AMBER-dynamo/makefile"
+    dynamoData["fDynamoPath"] = "/net/people/plgglanow/fortranPackages/AMBER-g09/AMBER-dynamo/makefile"
     dynamoData["flexiblePart"] = rewriteFlexibleSeleFile(  join(dynamoFilesDir, dynamoData["flexiblePart"]) )
     
     newNode = JobNode(None, dir2start)
@@ -165,7 +165,8 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     newNode.partition = "plgrid"
     newNode.time = "24:00:00"
     
-    makedirs(currentDir)
+    if not isdir(currentDir):
+        makedirs(currentDir)
     saveCrdFromDCD( join(currentDir, "coordsIn.crd"), initialGeom )
     
     newNode.coordsOut = "coordsDone.crd"
