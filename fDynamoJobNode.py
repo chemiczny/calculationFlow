@@ -23,7 +23,10 @@ class FDynamoNode(JobNode):
         self.templateDict = { "QMMM_opt_mopac" : [ "QMMM_opt.f90", "panadero.f90" ], 
                              "QMMM_irc_mopac" : [ "IRC.f90", "mep_project.f90" ] ,
                              "QMMM_scan1D_mopac" : [ "scan1D.f90" ],
-                             "QMMM_pmf" : [ "pmf.f90" ] }
+                             "QMMM_pmf" : [ "pmf.f90" ] ,
+                             "QMMMM_opt_gaussian" : [ "QMMM_opt_Gauss.f90", "panadero.f90", "keep_log", "with_gaussian.f90" ],
+                             "QMMM_irc_gaussian" : [ "IRC_Gauss.f90" , "mep_project.f90", "keep_log", "with_gaussian.f90" ],
+                             "QMMM_sp_gaussian" : [ "SP_Gauss.f90", "keep_log", "with_gaussian.f90"  ] }
         
         self.noOfExcpectedImaginaryFrequetions = -1
         self.processors = 1
@@ -153,7 +156,7 @@ class FDynamoNode(JobNode):
         line = lf.readline()
         while line:
             
-            if "Potential Energy Terms" in line:
+            if "CPU time used =" in line:
                 print("\tNormal termination of fDYNAMO")
                 result = True
                 break
@@ -259,6 +262,9 @@ class FDynamoNode(JobNode):
         if "additionalLines" in slurmConfig:
             slurmFile.write(slurmConfig["additionalLines"]+"\n")
             
+        if self.moduleAddLines:
+            slurmFile.write(self.moduleAddLines+"\n\n")
+            
         slurmFile.write("./a.out &> " + self.logFile + "\n")
         
         slurmFile.close()
@@ -336,14 +342,6 @@ class FDynamoNode(JobNode):
         files2process = self.templateDict[ self.templateKey ]
         
         self.inputFile = files2process[0]
-        file2copy = files2process[1:]
-        
-        for f2copy in file2copy:
-            copyfile(join(templateDir, f2copy), join(self.path, f2copy))
-            
-        inputTemplateFile = open(join(templateDir, self.inputFile), 'r')
-        inputTemplate = inputTemplateFile.read()
-        inputTemplateFile.close()
         
         if "coordScanStart" in self.additionalKeywords and self.readInitialScanCoord:
             self.additionalKeywords["coordScanStart"] = self.readInitialCoord()
@@ -355,9 +353,19 @@ class FDynamoNode(JobNode):
         
         formatDict.update(self.additionalKeywords)
         
+        
+        for f2copy in files2process:
+            self.rewriteTemplate(join(templateDir, f2copy), join(self.path, f2copy), formatDict)
+        
+        
+    def rewriteTemplate(self, template, destiny, formatDict):
+        inputTemplateFile = open(template, 'r')
+        inputTemplate = inputTemplateFile.read()
+        inputTemplateFile.close()
+        
         inputText = inputTemplate.format( **formatDict )
         
-        inputF = open(join(self.path, self.inputFile), 'w')
+        inputF = open(destiny, 'w')
         inputF.write(inputText)
         inputF.close()
             

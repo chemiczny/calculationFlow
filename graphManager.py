@@ -7,7 +7,8 @@ Created on Mon Oct 14 13:25:14 2019
 """
 from os.path import join, isfile, isdir
 from jobManager import JobManager
-from jobNode import GaussianNode
+#from jobNode import
+from gaussianNode import GaussianNode
 from squeuePy import SqueueManager
 from copy import deepcopy
 from shutil import copyfile
@@ -28,7 +29,6 @@ class GraphManager(JobManager):
             
         self.graphs = {}
         self.loadGraphs()
-        
         
     def initGraphs(self):
         file2dump = open(self.pickledGraphs, 'wb')

@@ -29,7 +29,7 @@ def addSPcorrections(graph, node, theoryLow = "B3LYP/6-31G(d,p)", theoryHigh = "
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P """+theoryLow+"""
-# nosymm SCRF(Solvent=Generic, Read) """+additionalRoute+"""
+# nosymm SCRF(Solvent=Water, Read) """+additionalRoute+"""
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
 """
@@ -50,7 +50,7 @@ epsinf=1.77556
     newNode.routeSection = """%Chk=checkp.chk
 %Mem=100GB
 #P """+theoryHigh+"""
-# nosymm SCRF(Solvent=Generic, Read) """+additionalRoute+"""
+# nosymm SCRF(Solvent=Water, Read) """+additionalRoute+"""
 # Gfinput IOP(6/7=3)  Pop=full  Density  Test 
 # Units(Ang,Deg)
 """
