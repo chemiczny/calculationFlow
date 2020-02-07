@@ -117,14 +117,14 @@ def rewriteFlexibleSeleFile( original ):
     
     inF.close()
     
-    return basename(corrected)
+    return corrected
     
 def buildGraph( rc, definedAtoms, dir2start, dynamoData, dynamoFilesDir, tsNo, method, basis ):
     jobGraph = nx.DiGraph()
     
     dynamoData["filesDir"] = dynamoFilesDir
     dynamoData["fDynamoPath"] = "/net/people/plgglanow/fortranPackages/AMBER-g09/AMBER-dynamo/makefile"
-    dynamoData["flexiblePart"] = rewriteFlexibleSeleFile(  join(dynamoFilesDir, dynamoData["flexiblePart"]) )
+    gaussianFlexibleSele = rewriteFlexibleSeleFile(  join(dynamoFilesDir, dynamoData["flexiblePart"]) )
     
     newNode = JobNode(None, dir2start)
     newNode.status = "finished"
@@ -136,7 +136,7 @@ def buildGraph( rc, definedAtoms, dir2start, dynamoData, dynamoFilesDir, tsNo, m
         print("Structure for TS search ", structure.dcd, structure.frame)
         newDir = join( dir2start,  "TS_"+str(i) )
         
-        addTSsearch(jobGraph, dir2start, newDir, dynamoData, structure, i, method, basis )
+        addTSsearch(jobGraph, dir2start, newDir, dynamoData, structure, i, method, basis , gaussianFlexibleSele )
 
     return jobGraph
         
@@ -153,17 +153,13 @@ def saveCrdFromDCD( destiny, dcdFrame ):
     mol.save_crd(destiny, boxl)
     mol.dcd_close()
         
-def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, method, basis):
+def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, method, basis, gaussianFelxSele):
     newNode = FDynamoNode("tsSearch.f90", currentDir)
     newNode.verification = ["Opt" , "Freq"]
     newNode.noOfExcpectedImaginaryFrequetions = 1
-    newNode.templateKey = "QMMM_opt_gaussian"
-    newNode.additionalKeywords = { "ts_search" : "true" , "method" : method, "basis" : basis , "multiplicity" : 1 }
+    newNode.templateKey = "QMMM_opt_mopac"
+    newNode.additionalKeywords = { "ts_search" : "true" }
     newNode.coordsIn = "coordsIn.crd"
-    newNode.processors = 24
-    newNode.moduleAddLines = "module add plgrid/apps/gaussian/g16.B.01"
-    newNode.partition = "plgrid"
-    newNode.time = "24:00:00"
     
     if not isdir(currentDir):
         makedirs(currentDir)
@@ -185,6 +181,29 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     
     jobGraph.add_node(currentDir, data = newNode)
     jobGraph.add_edge(rootDir, currentDir)
+    
+    newDir = join(currentDir, "ts_gaussian")
+    if not isdir(currentDir):
+        makedirs(currentDir)
+        
+    newNode = FDynamoNode("tsSearch", newDir)
+    newNode.verification = ["Opt" , "Freq"]
+    newNode.noOfExcpectedImaginaryFrequetions = 1
+    newNode.templateKey = "QMMM_opt_gaussian"
+    newNode.additionalKeywords =  { "ts_search" : "true", "method" : method, "basis" : basis , "multiplicity" : 1 }
+    newNode.coordsIn = "coordsStart.crd"
+    newNode.coordsOut = "coordsDone.crd"
+    newNode.flexiblePart = basename(gaussianFelxSele)
+    copyfile( gaussianFelxSele, join(currentDir, newNode.flexiblePart) )
+    newNode.processors = 24
+    newNode.moduleAddLines = "module add plgrid/apps/gaussian/g16.B.01"
+    newNode.partition = "plgrid"
+    newNode.time = "24:00:00"
+    
+
+    jobGraph.add_node(newDir, data = newNode)
+    jobGraph.add_edge(currentDir, newDir)
+    
     
     newDir = join(currentDir, "irc_reverse")
     newNode = FDynamoNode("irc_reverse.f90", newDir)
