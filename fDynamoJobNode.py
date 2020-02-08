@@ -68,8 +68,8 @@ class FDynamoNode(JobNode):
         self.results = []
         
     def analyseLog(self):
-        if not self.readResults:
-            return
+        # if not self.readResults:
+        #     return
         
         if not isfile( join(self.path, self.logFile) ):
             print("File does not exists! ",join(self.path, self.logFile) )

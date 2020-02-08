@@ -17,7 +17,7 @@ class SremoveManager(JobManager):
         csv = open(self.runningCsvPath, 'a')
         
         for key in jobs:
-            if not key in jobIds and not jobIds in jobs[key]:
+            if not key in jobIds:
                 csv.write(jobs[key])
             else:
                 removedJobs.append(key)

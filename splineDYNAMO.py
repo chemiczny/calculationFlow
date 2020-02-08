@@ -15,56 +15,7 @@ from parsers import parseFDynamoCompileScript
 from graphManager import GraphManager
 from jobNode import JobNode
 import sys
-
-class SplineDiffNode(JobNode):
-    def __init__(self, inputFile, path):
-        JobNode.__init__(self,inputFile, path)
-        
-        self.dftValue = None
-        self.semiEmpiricalValue = None
-        self.reactionCoordinate = None
-        self.diff = None
-        
-    def generateFromParents(self, graph, parents):
-        for p in parents:
-            parentData = graph.nodes[p]["data"]
-            
-            if "gaussian" in parentData.templateKey:
-                parentData.analyseLog()
-                self.dftValue = parentData.QMenergy
-                inputCoords = join(parentData.path, parentData.coordsIn)
-                self.reactionCoordinate = parentData.measureRC(inputCoords)
-                
-            else:
-                parentData.analyseLog()
-                self.semiEmpiricalValue = parentData.PotentialEnergy
-                
-        self.diff = self.dftValue - self.semiEmpiricalValue
-        
-    def run(self):
-        self.status = "finished"
-        
-class SplineNode(JobNode):
-    def __init__(self, inputFile, path, whamLog):
-        JobNode.__init__(self,inputFile, path)
-        self.whamLog = whamLog
-        
-    def generateFromParents(self, graph, parents):
-        copyfile( self.whamLog, join(self.pathm, "wham.log" ) )
-        
-        sortedParents = sorted( parents, key = lambda x: graph.nodes[x]["data"].reactionCoordinate  )
-        offset = min( [ graph.nodes[p]["data"].diff for p in parents   ] )
-        
-        logF = open( join( self.path, "diff.log" ) , 'w' )
-        
-        for p in sortedParents:
-            parent = graph.nodes[p]["data"]
-            logF.write( "%8.3lf%20.10lf\n"%( parent.reactionCoordinate, parent.diff - offset ) )
-        
-        logF.close()
-        
-    def run(self):
-        self.status = "finished"
+from splineNodes import SplineDiffNode, SplineNode
         
 
 def rewriteFlexibleSeleFile( original ):
@@ -98,25 +49,28 @@ def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, gra
     gaussianFlexibleSele = rewriteFlexibleSeleFile(  join(sourceDir, data["flexiblePart"]) )
 
     ########## ROOT NODE ###########################
-    rootNode = JobNode(None, graphDir)
+    rootNode = FDynamoNode(None, graphDir)
     rootNode.status = "finished"
+
+    if not isdir(graphDir):
+        makedirs(graphDir)
     
     rootNode.fDynamoPath = data["fDynamoPath"]
     rootNode.charge = data["charge"]
     rootNode.method = data["method"]
     rootNode.forceField = data["forceField"]
-    copyfile( join(data["filesDir"], data["forceField"]), join(graphDir, rootNode.forceField) )
+    copyfile( join(sourceDir, data["forceField"]), join(graphDir, rootNode.forceField) )
     rootNode.flexiblePart = data["flexiblePart"]
-    copyfile( join(data["filesDir"], data["flexiblePart"]), join(graphDir, rootNode.flexiblePart) )
+    copyfile( join(sourceDir, data["flexiblePart"]), join(graphDir, rootNode.flexiblePart) )
     rootNode.sequence = data["sequence"]
-    copyfile( join(data["filesDir"], data["sequence"]), join(graphDir, rootNode.sequence) )
+    copyfile( join(sourceDir, data["sequence"]), join(graphDir, rootNode.sequence) )
     rootNode.qmSele = data["qmSele"]
     
     jobGraph.add_node(graphDir, data = rootNode)
     
     ########### SPLINE NODE ####################
     splineDir = join( graphDir, "spline" )
-    splineNode = SplineNode(None, splineDir )
+    splineNode = SplineNode(None, splineDir, whamLog )
     jobGraph.add_node( splineDir, data= splineNode )
     
     
@@ -131,6 +85,9 @@ def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, gra
         
         if not isdir(dftDir):
             makedirs(dftDir)
+
+        if not isdir(semiEmpDir):
+            makedirs(semiEmpDir)
         
         dftNode = FDynamoNode("DFT-SP-"+dirNo, dftDir)
         dftNode.verification = ["SP"]
@@ -138,6 +95,7 @@ def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, gra
         dftNode.fDynamoPath = "/net/people/plgglanow/fortranPackages/AMBER-g09/AMBER-dynamo/makefile"
         dftNode.additionalKeywords =  {  "method" : method, "basis" : basis , "multiplicity" : 1 , "definedAtoms" : data["definedAtoms"] }
         dftNode.coordsIn = "coordsStart.crd"
+        copyfile(struct, join( dftNode.path, dftNode.coordsIn ))
         dftNode.coordsOut = "coordsDone.crd"
         dftNode.flexiblePart = basename(gaussianFlexibleSele)
         copyfile( gaussianFlexibleSele, join(dftDir, dftNode.flexiblePart) )
@@ -145,6 +103,7 @@ def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, gra
         dftNode.moduleAddLines = "module add plgrid/apps/gaussian/g16.B.01"
         dftNode.partition = "plgrid-short"
         dftNode.time = "1:00:00"
+        dftNode.getCoordsFromParent = False
         jobGraph.add_node(dftDir, data = dftNode)
         jobGraph.add_edge(graphDir, dftDir)
         
@@ -153,15 +112,19 @@ def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, gra
         semiNode.templateKey = "QMMM_sp"
         semiNode.coordsIn = "coordsStart.crd"
         semiNode.coordsOut = "coordsDone.crd"
+        copyfile(struct, join( semiNode.path, semiNode.coordsIn ))
         semiNode.partition = "plgrid-short"
         semiNode.time = "0:10:00"
+        semiNode.getCoordsFromParent = False
         jobGraph.add_node(semiEmpDir, data = semiNode)
         jobGraph.add_edge( graphDir, semiEmpDir )
         
         splineDiff = SplineDiffNode("diff", dirname)
         jobGraph.add_node(dirname, data = splineDiff)
-        jobGraph.add_edge(graphDir, dirname)
         
+        jobGraph.add_edge( dftDir, dirname )
+        jobGraph.add_edge( semiEmpDir, dirname )
+
         jobGraph.add_edge( dirname, splineDir )
     
     return jobGraph
@@ -185,7 +148,7 @@ if __name__ == "__main__":
             newGraph = buildGraph(whamLog, compileScript, method, basis, structures, currentDir, graphDir)
     
             
-            result = sm.addGraph(newGraph, currentDir)
+            result = sm.addGraph(newGraph, graphDir)
             if result:
                 sm.buildGraphDirectories(newGraph)
                 sm.saveGraphs()
