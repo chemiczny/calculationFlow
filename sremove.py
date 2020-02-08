@@ -9,18 +9,19 @@ import sys
 from jobManager import JobManager
 
 class SremoveManager(JobManager):
-    def sremove( self, jobIds ):
+    def sremove( self, jobIds, byString = False ):
         jobs = self.readRunningCsv()
         
         self.initRunningCsv()
         removedJobs = []
         csv = open(self.runningCsvPath, 'a')
+        
         for key in jobs:
-            if not key in jobIds:
+            if not key in jobIds and not jobIds in jobs[key]:
                 csv.write(jobs[key])
             else:
                 removedJobs.append(key)
-        csv.close()
+            csv.close()
         
         if removedJobs:
             self.append2Finished(jobs, removedJobs)
