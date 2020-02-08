@@ -292,12 +292,18 @@ class FDynamoNode(JobNode):
             
         if not self.forceField and hasattr(parent, "forceField"):
             self.forceField = parent.forceField
+            if not isfile(join(self.path, self.forceField)):
+                copyfile(join(parent.path, parent.forceField), join(self.path, self.forceField))
             
         if not self.flexiblePart and hasattr(parent, "flexiblePart"):
             self.flexiblePart = parent.flexiblePart
+            if not isfile(join(self.path, self.flexiblePart)):
+                copyfile(join(parent.path, parent.flexiblePart), join(self.path, self.flexiblePart))
             
         if not self.sequence and hasattr(parent, "sequence"):
             self.sequence = parent.sequence
+            if not isfile( join(self.path, self.sequence) ):
+                copyfile(join(parent.path, parent.sequence), join(self.path, self.sequence))
         
         if self.getCoordsFromParent:
             if self.anotherCoordsSource:
@@ -305,9 +311,6 @@ class FDynamoNode(JobNode):
             else:
                 copyfile(join(parent.path, parent.coordsOut), join(self.path, self.coordsIn))
                 
-            copyfile(join(parent.path, parent.forceField), join(self.path, self.forceField))
-            copyfile(join(parent.path, parent.flexiblePart), join(self.path, self.flexiblePart))
-            copyfile(join(parent.path, parent.sequence), join(self.path, self.sequence))
         
         if self.slurmFile:
             if isfile(join(self.path, self.slurmFile )):
