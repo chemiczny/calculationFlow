@@ -24,6 +24,7 @@ class FDynamoNode(JobNode):
                              "QMMM_irc_mopac" : [ "IRC.f90", "mep_project.f90" ] ,
                              "QMMM_scan1D_mopac" : [ "scan1D.f90" ],
                              "QMMM_pmf" : [ "pmf.f90" ] ,
+                             "QMMM_sp" : [ "SP.f90" ], 
                              "QMMM_opt_gaussian" : [ "QMMM_opt_Gauss.f90", "panadero.f90", "keep_log", "with_gaussian.f90" ],
                              "QMMM_irc_gaussian" : [ "IRC_Gauss.f90" , "mep_project.f90", "keep_log", "with_gaussian.f90" ],
                              "QMMM_sp_gaussian" : [ "SP_Gauss.f90", "keep_log", "with_gaussian.f90"  ] }
@@ -55,6 +56,9 @@ class FDynamoNode(JobNode):
         
         self.measureRCinOutput = False
         
+        self.QMenergy = None
+        self.PotentialEnergy = None
+        
     def rebuild(self, inputFile, path, slurmFile):
         self.inputFile = inputFile
         self.path = path
@@ -79,6 +83,10 @@ class FDynamoNode(JobNode):
         while line:
             if "Potential Energy     =" in line:
                 energy = line[:42]
+                self.PotentialEnergy = float(line.split()[3])
+                
+            elif "QM Energy            =" in line:
+                self.QMenergy = float( line.split()[3] )
 
             line = lf.readline()
         
@@ -102,10 +110,8 @@ class FDynamoNode(JobNode):
 
         if hasattr(self, "measureRCinOutput"):
             if self.measureRCinOutput:
-                atoms = atomsFromAtomSelection( self.additionalKeywords["definedAtoms"] )
-                getCoords( join(self.path, self.coordsOut), atoms)
                 
-                rc =  dist(atoms[0], atoms[1]) - dist(atoms[1], atoms[2])
+                rc = self.measureRC( join(self.path, self.coordsOut))
                 
                 if rc < 0 :
                     copyfile( join(self.path, self.coordsOut), join(self.path, "RC_negative_" + self.coordsOut) )
@@ -113,6 +119,15 @@ class FDynamoNode(JobNode):
                     copyfile( join(self.path, self.coordsOut), join(self.path, "RC_positive_" + self.coordsOut) )
 
         return res
+    
+    def measureRC(self, crdFile):
+        if not "definedAtoms" in self.additionalKeywords:
+            print("nie zdefiniowano atomow do RC!!!")
+            
+        atoms = atomsFromAtomSelection( self.additionalKeywords["definedAtoms"] )
+        getCoords( crdFile, atoms)
+        
+        return  dist(atoms[0], atoms[1]) - dist(atoms[1], atoms[2])
         
     def verifyScan1D(self):
         scanFile = join(self.path, "fort.900" )

@@ -376,30 +376,8 @@ class GraphManager(JobManager):
             if parents:
                 if len(parents) == 1:
                     self.runNode(graph, children, parents[0])
-                else:
-                    bestParent = None
-                    highestEnergy = None
-                    
-                    for p in parents:
-                        parentData = graph.nodes[p]["data"]
-                        if not parentData.valueForSorting:
-                            oldReadingValue = parentData.readResults
-                            parentData.readResults = True
-                            
-                            parentData.analyseLog()
-                            parentData.readResults = oldReadingValue
-                            if not parentData.valueForSorting:
-                                continue
-                            
-                        if not bestParent:
-                            bestParent = p
-                            highestEnergy = parentData.valueForSorting
-                            
-                        elif parentData.valueForSorting > highestEnergy:
-                            bestParent = p
-                            highestEnergy = parentData.valueForSorting
-                            
-                    self.runNode(graph, children, bestParent)
+                else:                            
+                    self.runNodeFromParents(graph, children, parents)
             else:
                 print("running new node: ")
                 print("\t",children)
@@ -446,6 +424,14 @@ class GraphManager(JobManager):
         print("\t",parent, graph.nodes[parent]["data"].logFile )
         
         graph.nodes[node]["data"].generateFromParent(graph.nodes[parent]["data"])
+        graph.nodes[node]["data"].run()
+        
+    def runNodeFromParents(self, graph, node, parents):
+        print("generating new node: ")
+        print("\t",node)
+        print(" from parents")
+        
+        graph.nodes[node]["data"].generateFromParents(graph, parents)
         graph.nodes[node]["data"].run()
         
     def buildGraphDirectories(self, graph):

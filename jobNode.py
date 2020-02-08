@@ -70,7 +70,37 @@ class JobNode:
         configFile.close()
 
         return slurmConfig
+    
+    def generateFromParents(self, graph, parents):
+        bestParent = None
+        highestEnergy = None
         
+        for p in parents:
+            parentData = graph.nodes[p]["data"]
+            if not parentData.valueForSorting:
+                oldReadingValue = parentData.readResults
+                parentData.readResults = True
+                
+                parentData.analyseLog()
+                parentData.readResults = oldReadingValue
+                if not parentData.valueForSorting:
+                    continue
+                
+            if not bestParent:
+                bestParent = p
+                highestEnergy = parentData.valueForSorting
+                
+            elif parentData.valueForSorting > highestEnergy:
+                bestParent = p
+                highestEnergy = parentData.valueForSorting
+        
+        print("generate from parent: ")
+        print(graph.nodes[bestParent]["data"].logFile)
+        
+        self.generateFromParent(graph.nodes[bestParent]["data"])
+        
+    def generateFromParent(self, parent):
+        pass
     
 #    def restart(self):
 #        pass
