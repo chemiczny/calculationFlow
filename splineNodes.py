@@ -23,7 +23,7 @@ class SplineDiffNode(JobNode):
                 
             else:
                 parentData.analyseLog()
-                self.semiEmpiricalValue = parentData.PotentialEnergy
+                self.semiEmpiricalValue = parentData.QMenergy
                 
         self.diff = self.dftValue - self.semiEmpiricalValue
         
