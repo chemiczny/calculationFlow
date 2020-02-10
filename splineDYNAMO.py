@@ -101,8 +101,8 @@ def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, gra
         copyfile( gaussianFlexibleSele, join(dftDir, dftNode.flexiblePart) )
         dftNode.processors = 24
         dftNode.moduleAddLines = "module add plgrid/apps/gaussian/g16.B.01"
-        dftNode.partition = "plgrid-short"
-        dftNode.time = "1:00:00"
+        dftNode.partition = "plgrid"
+        dftNode.time = "12:00:00"
         dftNode.getCoordsFromParent = False
         jobGraph.add_node(dftDir, data = dftNode)
         jobGraph.add_edge(graphDir, dftDir)

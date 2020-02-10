@@ -21,7 +21,7 @@ class SremoveManager(JobManager):
                 csv.write(jobs[key])
             else:
                 removedJobs.append(key)
-            csv.close()
+        csv.close()
         
         if removedJobs:
             self.append2Finished(jobs, removedJobs)

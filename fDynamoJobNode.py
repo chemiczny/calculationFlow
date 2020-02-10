@@ -52,6 +52,7 @@ class FDynamoNode(JobNode):
         self.coordsOut = ""
         
         self.anotherCoordsSource = ""
+        self.copyHessian = False
         self.readInitialScanCoord = False
         
         self.measureRCinOutput = False
@@ -325,6 +326,11 @@ class FDynamoNode(JobNode):
                 copyfile(join(parent.path, self.anotherCoordsSource), join(self.path, self.coordsIn))
             else:
                 copyfile(join(parent.path, parent.coordsOut), join(self.path, self.coordsIn))
+
+        if self.copyHessian:
+            parentHessian = join(parent.path, "hessian.dump")
+            if isfile(parentHessian):
+                copyfile(parentHessian, join(self.path, "hessian.dump"))
                 
         
         if self.slurmFile:

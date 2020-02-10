@@ -214,6 +214,7 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     newNode.additionalKeywords = { "IRC_dir" : "-1", "method" : method, "basis" : basis , "multiplicity" : 1 }
     newNode.coordsIn = "coordsStart.crd"
     newNode.coordsOut = "coordsDone.crd"
+    newNode.copyHessian = True
     newNode.processors = 24
     newNode.moduleAddLines = "module add plgrid/apps/gaussian/g16.B.01"
     newNode.partition = "plgrid"
@@ -249,6 +250,7 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     newNode.additionalKeywords = { "IRC_dir" : "1" , "method" : method, "basis" : basis , "multiplicity" : 1 }
     newNode.coordsIn = "coordsStart.crd"
     newNode.coordsOut = "coordsDone.crd"
+    newNode.copyHessian = True
     newNode.processors = 24
     newNode.moduleAddLines = "module add plgrid/apps/gaussian/g16.B.01"
     newNode.partition = "plgrid"
