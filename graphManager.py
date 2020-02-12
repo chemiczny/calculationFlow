@@ -294,6 +294,8 @@ class GraphManager(JobManager):
         graph = self.graphs[graphKey]
         finishedNodes = []
         nodes2restart = []
+        children2run =set([])
+
         for node in graph.nodes:
             data = graph.nodes[node]["data"]
             
@@ -305,7 +307,7 @@ class GraphManager(JobManager):
                         slurmOk, comment = data.verifySlurm()
                         if not slurmOk:
                             print("Slurm error ", node, comment)
-                            jobFailed = True
+                            # jobFailed = True
                     except:
                         print("Cannot verify slurm file")
                     
@@ -340,6 +342,8 @@ class GraphManager(JobManager):
                 # graph.nodes[node]["data"].analyseLog()
                 graph.nodes[node]["data"].status = "examined"
                 print("Node has been examined")
+            elif data.status == "waitingForParent":
+                children2run.add( node )
            
         if nodes2restart:
             print("Restarting nodes...")
@@ -349,9 +353,9 @@ class GraphManager(JobManager):
             finishedNodes.append(node)
             graph.nodes[node]["data"].status = "examined"
             
-        children2run =set([])
-        for node in finishedNodes:
-            children2run |= set( graph.successors(node ))
+        
+        # for node in finishedNodes:
+        #     children2run |= set( graph.successors(node ))
             
             
         if not children2run:
