@@ -41,7 +41,7 @@ def rewriteFlexibleSeleFile( original ):
     
     return corrected
 
-def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, graphDir):
+def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, graphDir, dftTime):
     jobGraph = nx.DiGraph()
 #    currentDir = getcwd()
     data = parseFDynamoCompileScript(compileScript)
@@ -101,8 +101,8 @@ def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, gra
         copyfile( gaussianFlexibleSele, join(dftDir, dftNode.flexiblePart) )
         dftNode.processors = 24
         dftNode.moduleAddLines = "module add plgrid/apps/gaussian/g16.B.01"
-        dftNode.partition = "plgrid-short"
-        dftNode.time = "1:00:00"
+        dftNode.partition = "plgrid"
+        dftNode.time = dftTime
         dftNode.getCoordsFromParent = False
         jobGraph.add_node(dftDir, data = dftNode)
         jobGraph.add_edge(graphDir, dftDir)
@@ -131,13 +131,14 @@ def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, gra
 
 if __name__ == "__main__":
     if len(sys.argv) < 6:
-        print("Usage: graphSplineDYNAMO wham.log compileScanScript.sh method basis structures")
+        print("Usage: graphSplineDYNAMO wham.log compileScanScript.sh method basis dft-time structures")
     else:
         whamLog = sys.argv[1]
         compileScript = sys.argv[2]
         method = sys.argv[3]
         basis = sys.argv[4]
-        structures = sys.argv[5:]
+        dftTime = sys.argv[5]
+        structures = sys.argv[6:]
         
         currentDir = abspath(dirname(compileScript))
         
@@ -149,7 +150,7 @@ if __name__ == "__main__":
         sm = GraphManager()
         graph = sm.isGraphHere(graphDir)
         if not graph:
-            newGraph = buildGraph(whamLog, compileScript, method, basis, structures, currentDir, graphDir)
+            newGraph = buildGraph(whamLog, compileScript, method, basis, structures, currentDir, graphDir, dftTime)
     
             
             result = sm.addGraph(newGraph, graphDir)

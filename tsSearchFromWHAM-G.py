@@ -13,7 +13,7 @@ import networkx as nx
 from fDynamoJobNode import FDynamoNode
 from jobNode import JobNode
 from glob import glob
-from os.path import dirname, join, abspath, basename, isdir
+from os.path import dirname, join, abspath, basename, isdir, isfile
 from os import getcwd, makedirs
 from graphManager import GraphManager
 import heapq
@@ -280,7 +280,7 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
 
 if __name__ == "__main__":
     if len(sys.argv) != 6:
-        print("Usage: graphTSsearchWHAM wham.log compileScanScript.sh numberOfTS2find method basis")
+        print("Usage: graphTSsearchWHAM wham.log/RC compileScanScript.sh numberOfTS2find method basis")
     else:
         whamLog = sys.argv[1]
         compileScript = sys.argv[2]
@@ -288,7 +288,10 @@ if __name__ == "__main__":
         method = sys.argv[4]
         basis = sys.argv[5]
         
-        tsReactionCoord = getTScoords(whamLog)
+        if isfile(whamLog):
+            tsReactionCoord = getTScoords(whamLog)
+        else:
+            tsReactionCoord = float(whamLog)
         print("Found reaction coordinate: ", tsReactionCoord)
         data = parseFDynamoCompileScript(compileScript)
         definedAtoms = data["definedAtoms"]

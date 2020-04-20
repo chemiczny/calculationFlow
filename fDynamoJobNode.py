@@ -176,6 +176,11 @@ class FDynamoNode(JobNode):
                 print("\tNormal termination of fDYNAMO")
                 result = True
                 break
+
+            if "Dynamics Results" in line:
+                print("\tNormal termination of fDYNAMO")
+                result = True
+                break
             
             line =lf.readline()
         
@@ -200,6 +205,7 @@ class FDynamoNode(JobNode):
             return result
         
         if "Gradient tolerance reached." in line:
+            print(line.strip())
             result = True
 
         return result
@@ -327,10 +333,11 @@ class FDynamoNode(JobNode):
             else:
                 copyfile(join(parent.path, parent.coordsOut), join(self.path, self.coordsIn))
 
-        if self.copyHessian:
-            parentHessian = join(parent.path, "hessian.dump")
-            if isfile(parentHessian):
-                copyfile(parentHessian, join(self.path, "hessian.dump"))
+        # if hasattr(self, "copyHessian"):
+        #     if self.copyHessian:
+        #         parentHessian = join(parent.path, "hessian.dump")
+        #         if isfile(parentHessian):
+        #             copyfile(parentHessian, join(self.path, "update.dump"))
                 
         
         if self.slurmFile:
@@ -354,6 +361,12 @@ class FDynamoNode(JobNode):
         system("make -f "+self.fDynamoPath + " SRC="+self.inputFile)
         
         chdir(lastDir)
+
+        compFile = join(self.path, "compile.sh")
+
+        cf = open(compFile, 'w')
+        cf.write("make -f "+self.fDynamoPath + " SRC="+self.inputFile+"\n")
+        cf.close()
         
     def readInitialCoord(self):
         atoms = atomsFromAtomSelection( self.additionalKeywords["definedAtoms"] )
@@ -379,10 +392,15 @@ class FDynamoNode(JobNode):
         
         
         for f2copy in files2process:
+            print("Generating from template: ", f2copy)
             self.rewriteTemplate(join(templateDir, f2copy), join(self.path, f2copy), formatDict)
         
         
     def rewriteTemplate(self, template, destiny, formatDict):
+        if isfile(destiny):
+            print("Using existing file")
+            return
+
         inputTemplateFile = open(template, 'r')
         inputTemplate = inputTemplateFile.read()
         inputTemplateFile.close()
