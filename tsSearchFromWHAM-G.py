@@ -119,7 +119,7 @@ def rewriteFlexibleSeleFile( original ):
     
     return corrected
     
-def buildGraph( rc, definedAtoms, dir2start, dynamoData, dynamoFilesDir, tsNo, method, basis ):
+def buildGraph( rc, definedAtoms, dir2start, dynamoData, dynamoFilesDir, tsNo, method, basis , preoptAm1):
     jobGraph = nx.DiGraph()
     
     dynamoData["filesDir"] = dynamoFilesDir
@@ -136,7 +136,7 @@ def buildGraph( rc, definedAtoms, dir2start, dynamoData, dynamoFilesDir, tsNo, m
         print("Structure for TS search ", structure.dcd, structure.frame)
         newDir = join( dir2start,  "TS_"+str(i) )
         
-        addTSsearch(jobGraph, dir2start, newDir, dynamoData, structure, i, method, basis , gaussianFlexibleSele )
+        addTSsearch(jobGraph, dir2start, newDir, dynamoData, structure, i, method, basis , gaussianFlexibleSele, preoptAm1 )
 
     return jobGraph
         
@@ -153,13 +153,15 @@ def saveCrdFromDCD( destiny, dcdFrame ):
     mol.save_crd(destiny, boxl)
     mol.dcd_close()
         
-def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, method, basis, gaussianFelxSele):
+def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, method, basis, gaussianFelxSele, preoptAm1):
     newNode = FDynamoNode("tsSearch.f90", currentDir)
     newNode.verification = ["Opt" , "Freq"]
     newNode.noOfExcpectedImaginaryFrequetions = 1
     newNode.templateKey = "QMMM_opt_mopac"
     newNode.additionalKeywords = { "ts_search" : "true" }
     newNode.coordsIn = "coordsIn.crd"
+
+    gaussianTime = "72:00:00"
     
     if not isdir(currentDir):
         makedirs(currentDir)
@@ -182,12 +184,14 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     jobGraph.add_node(currentDir, data = newNode)
     jobGraph.add_edge(rootDir, currentDir)
     
-    am1Dir = currentDir
-    currentDir = join(currentDir, "ts_gaussian")
-    if not isdir(currentDir):
-        makedirs(currentDir)
+    if preoptAm1:
+        am1Dir = currentDir
+        currentDir = join(currentDir, "ts_gaussian")
+        if not isdir(currentDir):
+            makedirs(currentDir)
         
-    newNode = FDynamoNode("tsSearch", currentDir)
+        newNode = FDynamoNode("tsSearch", currentDir)
+        
     newNode.verification = ["Opt" , "Freq"]
     newNode.noOfExcpectedImaginaryFrequetions = 1
     newNode.templateKey = "QMMM_opt_gaussian"
@@ -200,11 +204,12 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     newNode.processors = 24
     newNode.moduleAddLines = "module add plgrid/apps/gaussian/g16.B.01"
     newNode.partition = "plgrid"
-    newNode.time = "24:00:00"
+    newNode.time = gaussianTime
     
 
-    jobGraph.add_node(currentDir, data = newNode)
-    jobGraph.add_edge(am1Dir, currentDir)
+    if preoptAm1:
+        jobGraph.add_node(currentDir, data = newNode)
+        jobGraph.add_edge(am1Dir, currentDir)
     
     
     newDir = join(currentDir, "irc_reverse")
@@ -279,15 +284,29 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     
 
 if __name__ == "__main__":
-    if len(sys.argv) != 6:
-        print("Usage: graphTSsearchWHAM wham.log/RC compileScanScript.sh numberOfTS2find method basis")
+    if not len(sys.argv) in [ 6, 7, 8]:
+        print("Usage: graphTSsearchWHAM wham.log/RC ,compileScanScript.sh ,numberOfTS2find ,method ,basis , preoptimize in AM1 [default T], name")
     else:
         whamLog = sys.argv[1]
         compileScript = sys.argv[2]
         TSno = int(sys.argv[3])
         method = sys.argv[4]
         basis = sys.argv[5]
+
+        preoptAm1 = True
+        if len(sys.argv) >= 7:
+            if not sys.argv[6] in [ "T", "F" ]:
+                print("Wrong argument!")
+                quit()
+
+            if sys.argv[6] == "F":
+                preoptAm1 = False
         
+        print("AM1 preoptimization: ", preoptAm1)
+        additionalName = ""
+        if len(sys.argv) == 8:
+            additionalName = sys.argv[7]
+
         if isfile(whamLog):
             tsReactionCoord = getTScoords(whamLog)
         else:
@@ -299,12 +318,12 @@ if __name__ == "__main__":
 
         currentDir = abspath(dirname(compileScript))
 
-        graphDir = join( getcwd(), "multiTSsearch-"+method )
+        graphDir = join( getcwd(), "multiTSsearch-"+method + additionalName )
 
         sm = GraphManager()
         graph = sm.isGraphHere(graphDir)
         if not graph:
-            newGraph = jobGraph = buildGraph(tsReactionCoord, atoms, graphDir, data, currentDir, TSno, method, basis)
+            newGraph = jobGraph = buildGraph(tsReactionCoord, atoms, graphDir, data, currentDir, TSno, method, basis, preoptAm1)
     
             
             result = sm.addGraph(newGraph, graphDir)
