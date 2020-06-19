@@ -6,9 +6,10 @@ Created on Mon Oct 14 13:25:14 2019
 @author: michal
 """
 from os.path import join, isfile, isdir
-from jobManager import JobManager
-#from jobNode import
+from fitNode import FitNode
+from jobNode import JobNode
 from gaussianNode import GaussianNode
+from antechamberNode import AntechamberNode
 from squeuePy import SqueueManager
 from copy import deepcopy
 from shutil import copyfile
@@ -17,6 +18,7 @@ import sys
 from os import makedirs
 import networkx as nx
 from collections import defaultdict
+from jobManager import JobManager
 
 class GraphManager(JobManager):
     def __init__(self):
