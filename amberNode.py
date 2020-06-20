@@ -17,27 +17,31 @@ class AmberNode(JobNode):
         
         self.time = None
         self.partition = None
+        self.processors = 24
         self.mdDirectory = mdDirectory
         self.topology = topologyFile
-        self.coordinatesIn = coordinatesIn
+        self.coordsIn = coordinatesIn
         self.coordsOut = None
         
         self.NoSolventResidues = None
         self.runType = None
         self.nsOfSimulation = None
         
-        self.templateDict = { "standardOptimization" : "standardOptimization.slurm" }
+        self.templateDict = { "standardOptimization" : "standardOptimization.slurm" , "standardHeating" : "standardHeating.slurm", "standardMD" : "standardMD.slurm" }
         
     def generateFromParent(self, parentData):
         copyfile( join(parentData.path, parentData.topology), join(self.path, self.topology) )
         
+        if self.coordsIn == None:
+            self.coordsIn = "initial.rst7"
+
         if parentData.coordsOut != None:
             copyfile( join(parentData.path, parentData.coordsOut), join(self.path, self.coordsIn) )
         
         self.writeSlurmScript(self.inputFile)
     
     def setupStandardOptimization(self, scriptFile, template):
-        replaceDict = { "topology" : self.topology, "coordsIn" : self.coordinatesIn, "noSolventNo" : self.NoSolventResidues }
+        replaceDict = { "topology" : self.topology, "coordsIn" : self.coordsIn, "noSolventNo" : self.NoSolventResidues }
         self.coordsOut = "min5_true.rst7"
         
         inputTemplateFile = open(template, 'r')
@@ -49,7 +53,7 @@ class AmberNode(JobNode):
         scriptFile.write(inputText)
     
     def setupStandardHeating(self, scriptFile, template):
-        replaceDict = { "topology" : self.topology, "coordsIn" : self.coordinatesIn, "noSolventNo" : self.NoSolventResidues }
+        replaceDict = { "topology" : self.topology, "coordsIn" : self.coordsIn, "noSolventNo" : self.NoSolventResidues }
         self.coordsOut = "md0.rst7"
         
         inputTemplateFile = open(template, 'r')
@@ -77,9 +81,11 @@ class AmberNode(JobNode):
         inputTemplateFile = open(template, 'r')
         inputTemplate = inputTemplateFile.read()
         inputTemplateFile.close()
-        
+        # print("zczytane z szablonu:")
+        # print(inputTemplate)
         inputText = inputTemplate.format( **replaceDict )
-        
+        # print("po uzupelnieniu:")
+        # print(inputText)
         scriptFile.write(inputText)
     
     def writeSlurmScript( self, filename):
@@ -97,7 +103,7 @@ class AmberNode(JobNode):
             slurmFile.write(slurmConfig["firstLine"]+"\n")
             
         slurmFile.write("#SBATCH --nodes=1\n")
-        slurmFile.write("#SBATCH --cpus-per-task="+str(processors)+"\n")
+        slurmFile.write("#SBATCH --ntasks-per-node="+str(processors)+"\n")
                         
         if not slurmConfig:
             slurmFile.write("#SBATCH --time="+str(time)+"\n")
@@ -115,17 +121,17 @@ class AmberNode(JobNode):
             self.setupStandardOptimization(slurmFile, template)
         elif self.runType == "standardHeating":
             self.setupStandardHeating(slurmFile, template)
-        elif self.runType == "stardardMD":
+        elif self.runType == "standardMD":
             self.setupStandardMD(slurmFile, template)
         else:
-            print("Not implemented")
+            raise Exception("not implemented")
         
         slurmFile.close()
         
         self.slurmFile = filename
         
     def verifyLog(self):
-        pass
+        return True
 
     def analyseLog(self):
     	pass

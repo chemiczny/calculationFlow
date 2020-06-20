@@ -55,7 +55,7 @@ class CppTrajNode(JobNode):
             slurmFile.write(slurmConfig["firstLine"]+"\n")
             
         slurmFile.write("#SBATCH --nodes=1\n")
-        slurmFile.write("#SBATCH --cpus-per-task=1\n")
+        slurmFile.write("#SBATCH --ntasks-per-node=1\n")
                         
         if not slurmConfig:
             slurmFile.write("#SBATCH --time=1:00:00\n")
@@ -75,7 +75,7 @@ class CppTrajNode(JobNode):
         self.slurmFile = filename
         
     def verifyLog(self):
-        pass
+        return True
 
     def analyseLog(self):
     	pass

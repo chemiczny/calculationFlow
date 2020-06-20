@@ -66,7 +66,7 @@ def generateGraph(topologyFile, coordinates):
     optimNode.time = "1:00:00"
     optimNode.partition = "plgrid-short"
     jobGraph.add_node( currentDir, data = optimNode )
-    optimNode.writeSlurmScript()
+    optimNode.writeSlurmScript("amber.slurm")
     
     heatingDir = join( currentDir, "heating" )
     heatingNode = AmberNode("amber.in", heatingDir, heatingDir, topologyFile)
@@ -78,7 +78,7 @@ def generateGraph(topologyFile, coordinates):
     jobGraph.add_edge(currentDir, heatingDir)
     
     md1Dir = join(currentDir, "MD")
-    md1Node = AmberNode("amber.in", md1Dir, md1Dir, topologyFile)
+    md1Node = AmberNode("amber.in", md1Dir, md1Dir, topologyFile , "md0.rst7")
     md1Node.runType = "standardMD"
     md1Node.nsOfSimulation = 20
     md1Node.time = "72:00:00"
@@ -90,7 +90,7 @@ def generateGraph(topologyFile, coordinates):
     md2Node = AmberNode("amber.in", md2Dir, md1Dir, topologyFile)
     md2Node.runType = "standardMD"
     md2Node.time = "72:00:00"
-    md1Node.partition = "plgrid"
+    md2Node.partition = "plgrid"
     md2Node.nsOfSimulation = 20
     jobGraph.add_node(md2Dir, data = md2Node)
     jobGraph.add_edge(md1Dir, md2Dir)
@@ -99,7 +99,7 @@ def generateGraph(topologyFile, coordinates):
     md3Node = AmberNode("amber.in", md3Dir, md1Dir, topologyFile)
     md3Node.runType = "standardMD"
     md3Node.time = "72:00:00"
-    md1Node.partition = "plgrid"
+    md3Node.partition = "plgrid"
     md3Node.nsOfSimulation = 20
     jobGraph.add_node(md3Dir, data = md3Node)
     jobGraph.add_edge(md2Dir, md3Dir)

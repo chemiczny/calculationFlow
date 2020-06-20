@@ -16,7 +16,7 @@ eof
 for i in {ns}
 do
         j=$(( $i + 1 ))
-        $PMEMD_RUN -O -i md_npt.in -c md$i.rst7 -p {topology} -o md$j.out -x md$j.nc -r md$j.rst7 
+        $PMEMD_RUN -O -i md_npt.in -c {mdDir}/md$i.rst7 -p {topology} -o {mdDir}/md$j.out -x {mdDir}/md$j.nc -r {mdDir}/md$j.rst7 
         rm -f mdinfo
 done
 
