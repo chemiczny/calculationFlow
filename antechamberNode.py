@@ -32,7 +32,7 @@ class AntechamberNode(JobNode):
         if not slurmConfig:
             slurmFile.write("#SBATCH --time=1:00:00\n")
             if hasattr(self, "partition"):
-                slurmFile.write("#SBATCH -p plgrid-short\n\n")
+                slurmFile.write("#SBATCH -p {partition}\n\n".format(partition = self.partition))
             else:
                 slurmFile.write("#SBATCH -p plgrid\n\n")
 

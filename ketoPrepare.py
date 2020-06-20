@@ -10,12 +10,10 @@ from graphManager import GraphManager
 from antechamberNode import AntechamberNode
 import networkx as nx
 from os import getcwd
-from os.path import join, isfile, abspath, basename
+from os.path import join
 import sys
-from jobNode import  JobNode
 from gaussianNode import GaussianNode
 from parsers import getGaussianInpFromSlurmFile
-from shutil import copyfile
 from fitNode import FitNode
 
 def generateGraph(slurmFile, template):
