@@ -9,7 +9,8 @@ Created on Wed Oct 16 15:31:34 2019
 import networkx as nx
 from os import getcwd
 from os.path import  basename, dirname, abspath, join
-from jobNode import GaussianNode, JobNode
+from jobNode import JobNode
+from gaussianNode import GaussianNode
 from parsers import getGaussianInpFromSlurmFile, getModredundantSection
 from graphManager import GraphManager
 from generateStandardPathGraph import buildTSsearchGraph

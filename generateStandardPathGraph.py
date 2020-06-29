@@ -9,7 +9,7 @@ Created on Fri Oct 11 12:57:02 2019
 import networkx as nx
 from os import getcwd
 from os.path import join, dirname
-from jobNode import GaussianNode
+from gaussianNode import GaussianNode
 from parsers import getGaussianInpFromSlurmFile, getModredundantSection
 from graphGenerators import addSPcorrections, addZPE
 from graphManager import GraphManager

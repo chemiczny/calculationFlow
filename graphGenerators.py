@@ -6,7 +6,7 @@ Created on Tue Oct 15 12:55:34 2019
 @author: michal
 """
 from os.path import join
-from jobNode import GaussianNode
+from gaussianNode import GaussianNode
 
 def addSPcorrections(graph, node, theoryLow = "B3LYP/6-31G(d,p)", theoryHigh = "B3LYP/6-311+G(2d,2p)", basename = "", additionalRoute = ""):
     newDir = join(node, basename+"TZ")
