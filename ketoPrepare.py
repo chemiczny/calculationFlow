@@ -51,24 +51,27 @@ def generateGraph(slurmFile, template):
     jobGraph.add_node(anteDir, data = newNode)
     jobGraph.add_edge(newDir, anteDir)
     
-    fitDir = join(anteDir, "fit")
-    newNode = FitNode("keto.mol2", fitDir, template)
-    newNode.partition = "plgrid-short"
-    jobGraph.add_node(fitDir, data = newNode)
-    jobGraph.add_edge(anteDir, fitDir)
+    if template != None:
+        fitDir = join(anteDir, "fit")
+        newNode = FitNode("keto.mol2", fitDir, template)
+        newNode.partition = "plgrid-short"
+        jobGraph.add_node(fitDir, data = newNode)
+        jobGraph.add_edge(anteDir, fitDir)
 
     return jobGraph
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("ketoPrepare slurmFile, template")
+    if not len(sys.argv) in [ 2, 3 ] :
+        print("ketoPrepare slurmFile, template[optional]")
     else:
         sm = GraphManager()
         currentDir = getcwd()
         graph = sm.isGraphHere(currentDir)
         
         slurmFile = sys.argv[1]
-        template = sys.argv[2]
+        template = None
+        if len(sys.argv) == 3:
+            template = sys.argv[2]
         if not graph:
             newGraph = generateGraph(slurmFile, template)
             
