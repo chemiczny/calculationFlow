@@ -1,8 +1,8 @@
-#jobManagerPro
+# jobManagerPro
 
 jobManagerPro to zbiór skryptów, które były dla mnie przydatne w czasie prowadzenia obliczeń chemicznych z wykorzystaniem infrastruktury plgrid (aczkolwiek mogą zostać wykorzystane wszędzie, gdzie stosuje się system kolejkowy slurm). Część z nich jest przydatna jeśli chodzi o zarządzanie zakolejkowanymi zadaniami, inne mogą okazać się ciekawymi rozwiązaniami dla osób wykorzystujących oprogramowanie AMBER lub Gaussian i chcą zautowatyzować schematyczne sekwencje obliczeniowe. 
 
-#Instalacja
+# Instalacja
 
 Jest prymitywna. Najzwyczajniej w świecie sklonuj repozytorium w katalogu domowym:
 
@@ -27,9 +27,9 @@ python3 printAliases.py >> ~/.bash_aliases
 Jedynym zewnętrznym modułem, który jest potrzebny do pracy z jobManagerPro jest networkx, dostępny tutaj: https://networkx.github.io/
 Jeśli korzystasz z infrastruktury plgrid to nie musisz niczego dodatkowo instalować.
 
-#Użytkowanie
+# Użytkowanie
 
-##Kilka dodatków do zarządzania zadaniami w kolejce
+## Kilka dodatków do zarządzania zadaniami w kolejce
 
 Kiedy zaczynałem prowadzić obliczenia chemiczne zauważyłem, że mając kilka zadań do nadzoru łatwo się z nimi pogubić (przegapić zakończenie obliczeń, które trwały już 3 dni, a później szukać w którym katalogu znajdują się logi...). Dlatego sam używam nieco innych komend niż '''sbatch''' i '''squeue''' do analizy tego co się aktualnie dzieje w kolejce.
 
@@ -83,10 +83,10 @@ Użytkowanie: ''' sremovePy idZadania'''
 
 W ten sposób usuwamy zadania z listy kontrolowanej przez '''squeuePy'''. Wykonanie komendy '''sremovePy''' na zadaniu, które jest w stanie '''running''' nie spowoduje jego zatrzymania, a jedynie przestanie być monitorowane przez jobManagerPro. Możliwe jest podanie wielu id w celu usunięcia więcej niż jednego zadania.
 
-##Automatyzacja sekwencji obliczeń
+## Automatyzacja sekwencji obliczeń
 
 Już wkrótce
 
-#Gaussian
+# Gaussian
 
-#AMBER
+# AMBER
