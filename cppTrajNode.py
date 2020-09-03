@@ -39,7 +39,7 @@ class CppTrajNode(JobNode):
             rmsdFile.write("trajin "+ns2file[ns] + "\n")
         
         rmsdFile.write("strip :WAT\nstrip :Na+\nstrip :Cl-\n")
-        rmsdFile.write("rms first rmsd.dat  @C,N,CA\n")
+        rmsdFile.write("rms first out rmsd.dat  @C,N,CA\n")
         
         rmsdFile.close()
     
