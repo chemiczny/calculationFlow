@@ -18,7 +18,7 @@ cd jobManagerPro
 python3 printAliases.py
 ```
 
-W ten sposób wyświetlone zostaną wszystkie aliasy, które mogą Ci się przydać. Oczywiście równie dobrze można je przekierować do swojego pliku z aliasami np.:
+W ten sposób wyświetlone zostaną wszystkie aliasy, które mogą Ci się przydać. Oczywiście równie dobrze można je od razu przekierować do swojego pliku z aliasami np.:
 
 ```
 python3 printAliases.py >> ~/.bash_aliases
@@ -43,7 +43,7 @@ Ta komenda po prostu wrzuca zadanie do kolejki, przy okazji zapisując je w taki
 
 Użytkowanie: ``` squeuePy [hasło do wyszukania] ```
 
-Wykonując samo ```squeue``` po prostu wyświetlimy aktualny stan zadań (oczywiście tylko tych, które zostały dodane do kolejki za pomocą sbatchPy). W terminalu powinniśmy zobaczyć coś takiego:
+Wykonując samo ```squeuePy``` po prostu wyświetlimy aktualny stan zadań (oczywiście tylko tych, które zostały dodane do kolejki za pomocą sbatchPy). W terminalu powinniśmy zobaczyć coś takiego:
 
 ```
 Joby uruchomione lub oczekujace:
@@ -64,7 +64,7 @@ Script file:	wham.slurm
 
 Od razu widać więc pełną ścieżkę do katalogu, z którego uruchomiliśmy zadanie, komentarz (opcjonalnie), a także osobno wylistowane ukończone zadania. Oczywiście, gdyby lista ukończonych zadań miała tylko rosnąć w czasie, to nie miałoby to wielkiego sensu. Do usuwania danych z tej listy służy następna komenda.
 
-Można też przefiltrować wyniki wyświetlane przez ```squeuePy``` dodanie kolejnego argumentu spowoduje, że zostaną wyświetlone te zadania, które zawierają (w komentarzu lub ścieżce lub nazwie skryptu) daną frazę. Np. wykonanie ```squeuePy scan``` wyświetli:
+Można też przefiltrować wyniki wyświetlane przez ```squeuePy```. Dodanie kolejnego argumentu spowoduje, że zostaną wyświetlone te zadania, które zawierają (w komentarzu lub ścieżce lub nazwie skryptu) daną frazę. Np. wykonanie ```squeuePy scan``` wyświetli:
 
 ```
 Joby uruchomione lub oczekujace:
