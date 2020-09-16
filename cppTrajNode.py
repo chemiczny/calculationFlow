@@ -25,7 +25,7 @@ class CppTrajNode(JobNode):
     
     def writeRmsdScript(self):
         rmsdFile = open( join(self.path, "rmsd.in"), 'w' )
-        baseCoords = join( self.mdDir, "md0.rst7" )
+        baseCoords = join( self.mdDir, "md_rst_0.nc" )
         rmsdFile.write("trajin "+baseCoords + "\n")
         
         mdFiles = list(glob( join(self.mdDir, "md*.nc") ))

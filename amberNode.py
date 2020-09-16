@@ -54,7 +54,7 @@ class AmberNode(JobNode):
     
     def setupStandardHeating(self, scriptFile, template):
         replaceDict = { "topology" : self.topology, "coordsIn" : self.coordsIn, "noSolventNo" : self.NoSolventResidues }
-        self.coordsOut = "md0_rst.nc"
+        self.coordsOut = "md_rst_0.nc"
         
         inputTemplateFile = open(template, 'r')
         inputTemplate = inputTemplateFile.read()
@@ -68,10 +68,10 @@ class AmberNode(JobNode):
         pass
     
     def setupStandardMD(self, scriptFile, template):
-        mdFiles = list(glob( join(self.mdDirectory, "md*_rst.nc") ))
+        mdFiles = list(glob( join(self.mdDirectory, "md_rst_*.nc") ))
         highestNs = 0
         for mdFile in mdFiles:
-            nsNumber = int( basename(mdFile).replace("md", "").replace("_rst.nc", "") )
+            nsNumber = int( basename(mdFile).replace("md_rst_", "").replace(".nc", "") )
             highestNs = max(highestNs, nsNumber)
         
         ns2run = list(range( highestNs, highestNs + self.nsOfSimulation ))

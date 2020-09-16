@@ -50,6 +50,6 @@ eof
 $PMEMD_RUN -O -i md_eq_npt.in -c eqnvt_rst.nc -p {topology} -o eqnpt.out -ref eqnvt_rst.nc -r eqnpt_rst.nc -x eqnpt.nc
 rm -f mdinfo
 
-cp eqnpt_rst.nc md0.rst7
+cp eqnpt_rst.nc md_rst_0.nc
 
 
