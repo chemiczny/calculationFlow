@@ -2,9 +2,11 @@ from networkx.algorithms.isomorphism import GraphMatcher
 import numpy as np
 import math
 from jobNode import JobNode
-from os.path import join, isfile, isdir, abspath, basename
+from os.path import join, isfile, abspath, basename, dirname
+from os import getcwd
 import networkx as nx
 from shutil import copyfile
+import sys
 
 class moleculeMatcher(GraphMatcher):
     def semantic_feasibility(self, G1_node, G2_node):
@@ -123,10 +125,10 @@ class FitNode(JobNode):
     def __init__(self, inputFile, path, templateXyz):
         JobNode.__init__(self,inputFile, path)
         self.templateAbs = abspath(templateXyz)
-        self.templateBase = join(self.path, basename(self.templateAbs) )
+        self.templateBase = join(self.path, "reindexed_" + basename(self.templateAbs) )
         
-    def generateFromParent(self, parentData):
-        gespSource = join( parentData.path, "keto.mol2" )
+    def generateFromParent(self, parentData, mol2file = "keto.mol2"):
+        gespSource = join( parentData.path, mol2file )
         
         fullMolecule = readMol2(gespSource)
         moleculeFragment = readXYZ(self.templateAbs)
@@ -219,3 +221,24 @@ exit
     def analyseLog(self):
     	pass
         
+class FakeParent(JobNode):
+    def __init__(self, inputFile, path):
+        JobNode.__init__(self,inputFile, path)
+    
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("mol2fit mol2 , xyz")
+        quit()
+        
+    mol2file = sys.argv[1]
+    xyzFile = sys.argv[2]
+    
+    actualDir = getcwd()
+    mol2Dir = dirname(abspath(mol2file))
+    
+    fakeParent = FakeParent( mol2file,mol2Dir)
+    fitNode = FitNode("lol", actualDir, xyzFile)
+    
+    fitNode.generateFromParent(fakeParent, basename(mol2file))
+    
+    

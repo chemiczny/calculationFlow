@@ -11,7 +11,7 @@ END
 END
 eof
 
-$PMEMD_RUN -O -i min1_true.in -c {coordsIn} -p {topology} -ref {coordsIn} -o min1_true.out -r min1_true.rst7
+$PMEMD_RUN -O -i min1_true.in -c {coordsIn} -p {topology} -ref {coordsIn} -o min1_true.out -r min1_true_rst.nc
 rm -f mdinfo
 
 
@@ -27,7 +27,7 @@ END
 END
 eof
 
-$PMEMD_RUN -O -i min2_true.in -c min1_true.rst7 -p {topology} -ref {coordsIn} -o min2_true.out -r min2_true.rst7
+$PMEMD_RUN -O -i min2_true.in -c min1_true_rst.nc -p {topology} -ref {coordsIn} -o min2_true.out -r min2_true_rst.nc
 rm -f mdinfo
 
 
@@ -43,7 +43,7 @@ END
 END
 eof
 
-$PMEMD_RUN -O -i min3_true.in -c min2_true.rst7 -p {topology} -ref {coordsIn} -o min3_true.out -r min3_true.rst7
+$PMEMD_RUN -O -i min3_true.in -c min2_true_rst.nc -p {topology} -ref {coordsIn} -o min3_true.out -r min3_true_rst.nc
 rm -f mdinfo
 
 
@@ -59,7 +59,7 @@ END
 END
 eof
 
-$PMEMD_RUN -O -i min4_true.in -c min3_true.rst7 -p {topology} -ref {coordsIn} -o min4_true.out -r min4_true.rst7
+$PMEMD_RUN -O -i min4_true.in -c min3_true_rst.nc -p {topology} -ref {coordsIn} -o min4_true.out -r min4_true_rst.nc
 rm -f mdinfo
 
 
@@ -75,5 +75,5 @@ END
 END
 eof
 
-$PMEMD_RUN -O -i min5_true.in -c min4_true.rst7 -p {topology} -ref {coordsIn} -o min5_true.out -r min5_true.rst7
+$PMEMD_RUN -O -i min5_true.in -c min4_true_rst.nc -p {topology} -ref {coordsIn} -o min5_true.out -r min5_true_rst.nc
 rm -f mdinfo

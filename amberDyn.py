@@ -78,7 +78,7 @@ def generateGraph(topologyFile, coordinates):
     jobGraph.add_edge(currentDir, heatingDir)
     
     md1Dir = join(currentDir, "MD")
-    md1Node = AmberNode("amber.in", md1Dir, md1Dir, topologyFile , "md0.rst7")
+    md1Node = AmberNode("amber.in", md1Dir, md1Dir, topologyFile , "md0_rst.nc")
     md1Node.runType = "standardMD"
     md1Node.nsOfSimulation = 20
     md1Node.time = "72:00:00"
