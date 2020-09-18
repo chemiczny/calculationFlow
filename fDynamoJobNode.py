@@ -60,6 +60,8 @@ class FDynamoNode(JobNode):
         self.QMenergy = None
         self.PotentialEnergy = None
         
+        self.moduleAddLines = "module load plgrid/tools/intel/19.0.3"
+        
     def rebuild(self, inputFile, path, slurmFile):
         self.inputFile = inputFile
         self.path = path
@@ -287,6 +289,7 @@ class FDynamoNode(JobNode):
         if self.moduleAddLines:
             slurmFile.write(self.moduleAddLines+"\n\n")
             
+        slurmFile.write("make -f "+self.fDynamoPath + " SRC="+self.inputFile+" &> build.log\n")
         slurmFile.write("./a.out &> " + self.logFile + "\n")
         
         slurmFile.close()
@@ -351,7 +354,7 @@ class FDynamoNode(JobNode):
             self.writeSlurmScript("run.slurm", self.processors, self.time)
         
         self.generateInput()
-        self.compileInput()
+#        self.compileInput()
         
     def compileInput(self):
         lastDir = getcwd()
