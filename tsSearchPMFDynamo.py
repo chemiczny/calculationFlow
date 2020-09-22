@@ -43,7 +43,7 @@ def generateTSsearchDynamoPMF(compFile):
     
     jobGraph.add_node( currentDir , data = newNode )
     newNode.generateInput()
-    newNode.compileInput()
+    # newNode.compileInput()
     
     ################## TS SEARCH #####################################
     startDir, currentDir = currentDir, join(currentDir, "ts_search")

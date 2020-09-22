@@ -342,6 +342,7 @@ class FDynamoNode(JobNode):
         #         if isfile(parentHessian):
         #             copyfile(parentHessian, join(self.path, "update.dump"))
                 
+        self.generateInput()
         
         if self.slurmFile:
             if isfile(join(self.path, self.slurmFile )):
@@ -353,23 +354,23 @@ class FDynamoNode(JobNode):
             print("Generating slurmFile")
             self.writeSlurmScript("run.slurm", self.processors, self.time)
         
-        self.generateInput()
+        
 #        self.compileInput()
         
-    def compileInput(self):
-        lastDir = getcwd()
+    # def compileInput(self):
+    #     lastDir = getcwd()
         
-        chdir(self.path)
+    #     chdir(self.path)
         
-        system("make -f "+self.fDynamoPath + " SRC="+self.inputFile)
+    #     system("make -f "+self.fDynamoPath + " SRC="+self.inputFile)
         
-        chdir(lastDir)
+    #     chdir(lastDir)
 
-        compFile = join(self.path, "compile.sh")
+    #     compFile = join(self.path, "compile.sh")
 
-        cf = open(compFile, 'w')
-        cf.write("make -f "+self.fDynamoPath + " SRC="+self.inputFile+"\n")
-        cf.close()
+    #     cf = open(compFile, 'w')
+    #     cf.write("make -f "+self.fDynamoPath + " SRC="+self.inputFile+"\n")
+    #     cf.close()
         
     def readInitialCoord(self):
         atoms = atomsFromAtomSelection( self.additionalKeywords["definedAtoms"] )

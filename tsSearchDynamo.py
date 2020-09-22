@@ -36,7 +36,7 @@ def generateTSsearchDynamo(compFile):
     newNode.additionalKeywords = { "ts_search" : "true" }
     
     jobGraph.add_node( currentDir , data = newNode )
-    newNode.compileInput()
+    # newNode.compileInput()
     
     return buildTSsearchGraphDynamo(jobGraph, currentDir )
     
