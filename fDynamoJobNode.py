@@ -60,7 +60,7 @@ class FDynamoNode(JobNode):
         self.QMenergy = None
         self.PotentialEnergy = None
         
-        self.moduleAddLines = "module load plgrid/tools/intel/19.0.3"
+        self.moduleAddLines = ""
         
     def rebuild(self, inputFile, path, slurmFile):
         self.inputFile = inputFile
@@ -283,8 +283,11 @@ class FDynamoNode(JobNode):
             slurmFile.write("#SBATCH --time="+str(time)+"\n")
             slurmFile.write("#SBATCH -p "+self.partition+"\n\n")
             
-        if "additionalLines" in slurmConfig:
-            slurmFile.write(slurmConfig["additionalLines"]+"\n")
+#        if "additionalLines" in slurmConfig:
+#            slurmFile.write(slurmConfig["additionalLines"]+"\n")
+            
+        if "fDYNAMOcompilerModule" in slurmConfig:
+            slurmFile.write("module load "+ slurmConfig["fDYNAMOcompilerModule"] + " \n\n")
             
         if self.moduleAddLines:
             slurmFile.write(self.moduleAddLines+"\n\n")

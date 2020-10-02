@@ -33,7 +33,7 @@ class AmberNode(JobNode):
         copyfile( join(parentData.path, parentData.topology), join(self.path, self.topology) )
         
         if self.coordsIn == None:
-            self.coordsIn = "initial.rst7"
+            self.coordsIn = "initial_rst.nc"
 
         if parentData.coordsOut != None:
             copyfile( join(parentData.path, parentData.coordsOut), join(self.path, self.coordsIn) )

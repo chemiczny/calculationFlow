@@ -15,7 +15,7 @@ from graphManager import GraphManager
 import sys
 #from crdParser import getCoords, dist, atomsFromAtomSelection
 
-def generateTSsearchDynamoPMF(compFile):
+def generateTSsearchDynamoPMF(compFile, onlyPrepare):
     jobGraph = nx.DiGraph()
     currentDir = getcwd()
     data = parseFDynamoCompileScript(compFile)
@@ -129,22 +129,23 @@ def generateTSsearchDynamoPMF(compFile):
     jobGraph.add_node(reverseScan, data = newNode)
     jobGraph.add_edge( tsFoundDir, reverseScan)
     
-    pmfDir = join( startDir, "PMF" )
-    for i in range(scanSteps+1):
-        stepDir = join(pmfDir, "pmfRev"+str(i))
-        
-        newNode = FDynamoNode("pmfStep.f90", stepDir)
-        newNode.verification = ["SP"]
-        newNode.partition = "plgrid"
-        newNode.time = "72:00:00"
-        newNode.templateKey = "QMMM_pmf"
-        newNode.readInitialScanCoord = True
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms}
-        newNode.coordsIn = "seed.-"+str(i)
-        newNode.anotherCoordsSource = "seed.-"+str(i)
-        
-        jobGraph.add_node(stepDir, data = newNode)
-        jobGraph.add_edge( reverseScan, stepDir)
+    if not onlyPrepare:
+        pmfDir = join( startDir, "PMF" )
+        for i in range(scanSteps+1):
+            stepDir = join(pmfDir, "pmfRev"+str(i))
+            
+            newNode = FDynamoNode("pmfStep.f90", stepDir)
+            newNode.verification = ["SP"]
+            newNode.partition = "plgrid"
+            newNode.time = "72:00:00"
+            newNode.templateKey = "QMMM_pmf"
+            newNode.readInitialScanCoord = True
+            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms}
+            newNode.coordsIn = "seed.-"+str(i)
+            newNode.anotherCoordsSource = "seed.-"+str(i)
+            
+            jobGraph.add_node(stepDir, data = newNode)
+            jobGraph.add_edge( reverseScan, stepDir)
         
     forwardScan = join(startDir, "TS1forwardScan")
     
@@ -159,36 +160,41 @@ def generateTSsearchDynamoPMF(compFile):
     jobGraph.add_node(forwardScan, data = newNode)
     jobGraph.add_edge( tsFoundDir, forwardScan)
     
-    for i in range(1,scanSteps+1):
-        stepDir = join(pmfDir, "pmfForw"+str(i))
-        
-        newNode = FDynamoNode("pmfStep.f90", stepDir)
-        newNode.verification = ["SP"]
-        newNode.partition = "plgrid"
-        newNode.time = "72:00:00"
-        newNode.templateKey = "QMMM_pmf"
-        newNode.readInitialScanCoord = True
-        newNode.anotherCoordsSource = "seed.+"+str(i)
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms}
-        newNode.coordsIn = "seed.+"+str(i)
-        
-        jobGraph.add_node(stepDir, data = newNode)
-        jobGraph.add_edge( forwardScan, stepDir)
+    if not onlyPrepare:
+        for i in range(1,scanSteps+1):
+            stepDir = join(pmfDir, "pmfForw"+str(i))
+            
+            newNode = FDynamoNode("pmfStep.f90", stepDir)
+            newNode.verification = ["SP"]
+            newNode.partition = "plgrid"
+            newNode.time = "72:00:00"
+            newNode.templateKey = "QMMM_pmf"
+            newNode.readInitialScanCoord = True
+            newNode.anotherCoordsSource = "seed.+"+str(i)
+            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms}
+            newNode.coordsIn = "seed.+"+str(i)
+            
+            jobGraph.add_node(stepDir, data = newNode)
+            jobGraph.add_edge( forwardScan, stepDir)
     
     
     return jobGraph
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: initTSsearchDynamoPMF compileScanScript.sh")
+        print("Usage: initTSsearchDynamoPMF compileScanScript.sh [ only prepare for PMF, default False ]")
     else:
         compFile = sys.argv[1]
         currentDir = getcwd()
         
+        onlyPrepare = False
+        if len(sys.argv) > 2:
+            onlyPrepare = True
+        
         sm = GraphManager()
         graph = sm.isGraphHere(currentDir)
         if not graph:
-            newGraph = generateTSsearchDynamoPMF(compFile)
+            newGraph = generateTSsearchDynamoPMF(compFile, onlyPrepare)
     
             
             result = sm.addGraph(newGraph, currentDir)
