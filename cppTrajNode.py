@@ -28,7 +28,7 @@ class CppTrajNode(JobNode):
         baseCoords = join( self.mdDir, "md_rst_0.nc" )
         rmsdFile.write("trajin "+baseCoords + "\n")
         
-        mdFiles = list(glob( join(self.mdDir, "md*.nc") ))
+        mdFiles = list(glob( join(self.mdDir, "md[0-9].nc") ))+list(glob( join(self.mdDir, "md[0-9][0-9].nc") ))+list(glob( join(self.mdDir, "md[0-9][0-9][0-9].nc") ))
         ns2file = {}
         for mdFile in mdFiles:
             nsNumber = int( basename(mdFile).replace("md", "").replace(".nc", "") )
