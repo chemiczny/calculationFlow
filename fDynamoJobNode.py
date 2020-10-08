@@ -141,27 +141,58 @@ class FDynamoNode(JobNode):
         sf = open(scanFile, 'r')
         
         line = sf.readline()
-        highestEnergy = float(line.split()[1])
-        highestIndex = coordIndex
+        TSEnergy = float(line.split()[1])
+        TSIndex = coordIndex
+
+        lastEnergy = TSEnergy
+
+        afterMaxPoints = 0
+        afterMaxLimit = 4
+
+        state = "init"
+
         while line:
             
             energy = float(line.split()[1])
-            if energy > highestEnergy:
-                highestEnergy = energy
-                highestIndex = coordIndex
+
+            if state == "init":
+                if energy > lastEnergy:
+                    state = "beforeTS"
+
+            elif state == "beforeTS":
+                if energy < lastEnergy:
+                    TSEnergy = lastEnergy
+                    TSIndex = coordIndex - 1
+                    afterMaxPoints = 1
+                    state = "afterTS"
+
+            elif state == "afterTS":
+                if energy < TSEnergy:
+                    afterMaxPoints += 1
+                else:
+                    state = "beforeTS"
+                    afterMaxPoints = 0
+
+                if afterMaxPoints > afterMaxLimit:
+                    break
             
             line = sf.readline()
             coordIndex += 1
+            lastEnergy = energy
         
         sf.close()
         
         coordsOut = ""
         
-        if isfile( join(self.path, "seed.+"+str(highestIndex)) ):
-            coordsOut = "seed.+"+str(highestIndex)
+        if isfile( join(self.path, "seed.+"+str(TSIndex)) ):
+            coordsOut = "seed.+"+str(TSIndex)
             
-        elif isfile( join(self.path, "seed.-"+str(highestIndex)) ):
-            coordsOut = "seed.-"+str(highestIndex)
+        elif isfile( join(self.path, "seed.-"+str(TSIndex)) ):
+            coordsOut = "seed.-"+str(TSIndex)
+
+        else:
+            print("cannot find TS guess")
+            return False
             
         self.coordsOut = coordsOut
         
@@ -286,13 +317,17 @@ class FDynamoNode(JobNode):
 #        if "additionalLines" in slurmConfig:
 #            slurmFile.write(slurmConfig["additionalLines"]+"\n")
             
-        if "fDYNAMOcompilerModule" in slurmConfig:
-            slurmFile.write("module load "+ slurmConfig["fDYNAMOcompilerModule"] + " \n\n")
-            
         if self.moduleAddLines:
             slurmFile.write(self.moduleAddLines+"\n\n")
+
+
+        if "fDYNAMOcompilerModule" in slurmConfig:
+            slurmFile.write("module load "+ slurmConfig["fDYNAMOcompilerModule"] + " \n\n")
+            slurmFile.write("make -f "+self.fDynamoPath + " SRC="+self.inputFile+" &> build.log\n")
+        else:
+            self.compileInput()
             
-        slurmFile.write("make -f "+self.fDynamoPath + " SRC="+self.inputFile+" &> build.log\n")
+        
         slurmFile.write("./a.out &> " + self.logFile + "\n")
         
         slurmFile.close()
@@ -358,22 +393,22 @@ class FDynamoNode(JobNode):
             self.writeSlurmScript("run.slurm", self.processors, self.time)
         
         
-#        self.compileInput()
+       # self.compileInput()
         
-    # def compileInput(self):
-    #     lastDir = getcwd()
+    def compileInput(self):
+        lastDir = getcwd()
         
-    #     chdir(self.path)
+        chdir(self.path)
         
-    #     system("make -f "+self.fDynamoPath + " SRC="+self.inputFile)
+        system("make -f "+self.fDynamoPath + " SRC="+self.inputFile)
         
-    #     chdir(lastDir)
+        chdir(lastDir)
 
-    #     compFile = join(self.path, "compile.sh")
+        compFile = join(self.path, "compile.sh")
 
-    #     cf = open(compFile, 'w')
-    #     cf.write("make -f "+self.fDynamoPath + " SRC="+self.inputFile+"\n")
-    #     cf.close()
+        cf = open(compFile, 'w')
+        cf.write("make -f "+self.fDynamoPath + " SRC="+self.inputFile+"\n")
+        cf.close()
         
     def readInitialCoord(self):
         atoms = atomsFromAtomSelection( self.additionalKeywords["definedAtoms"] )
