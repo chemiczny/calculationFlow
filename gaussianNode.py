@@ -215,7 +215,12 @@ class GaussianNode(JobNode):
         slurmFile.write("#SBATCH --nodes=1\n")
         slurmFile.write("#SBATCH --cpus-per-task="+str(processors)+"\n")
                         
-        if not slurmConfig:
+        timeRestrictions = True
+
+        if timeRestrictions in slurmConfig:
+            timeRestrictions = slurmConfig["timeRestrictions"]
+
+        if timeRestrictions:
             slurmFile.write("#SBATCH --time="+str(time)+"\n")
             if hasattr(self, "partition"):
                 slurmFile.write("#SBATCH -p "+self.partition+"\n\n")

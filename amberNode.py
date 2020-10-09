@@ -105,9 +105,17 @@ class AmberNode(JobNode):
         slurmFile.write("#SBATCH --nodes=1\n")
         slurmFile.write("#SBATCH --ntasks-per-node="+str(processors)+"\n")
                         
-        if not slurmConfig:
+        timeRestrictions = True
+
+        if timeRestrictions in slurmConfig:
+            timeRestrictions = slurmConfig["timeRestrictions"]
+
+        if timeRestrictions:
             slurmFile.write("#SBATCH --time="+str(time)+"\n")
-            slurmFile.write("#SBATCH -p "+self.partition+"\n\n")
+            if hasattr(self, "partition"):
+                slurmFile.write("#SBATCH -p "+self.partition+"\n\n")
+            else:
+                slurmFile.write("#SBATCH -p plgrid\n\n")
             
         if "additionalLines" in slurmConfig:
             slurmFile.write(slurmConfig["additionalLines"]+"\n")
