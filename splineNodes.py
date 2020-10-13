@@ -43,6 +43,7 @@ class SplineNode(JobNode):
         offset = min( [ graph.nodes[p]["data"].diff for p in parents   ] )
         
         logF = open( join( self.path, "diff.log" ) , 'w' )
+        logHL = open( join( self.path, "dft.log" ) , 'w' )
         
         x = []
         y = []
@@ -55,8 +56,10 @@ class SplineNode(JobNode):
             x.append(parent.reactionCoordinate)
             y.append(parent.diff - offset)
             logF.write( "%8.3lf%20.10lf\n"%( parent.reactionCoordinate, parent.diff - offset ) )
+            logHL.write( "%8.3lf%20.10lf\n"%( parent.reactionCoordinate, parent.dftValue) )
         
         logF.close()
+        logHL.close()
 
         self.smoothProfile(x, y)
 

@@ -310,6 +310,7 @@ def parseFDynamoCompileScript(compileScript):
     
     data["qmSele"] = ""
     data["definedAtoms"] = ""
+    data["constraints"] = ""
     
     line = fortFile.readline()
     while line:
@@ -342,6 +343,9 @@ def parseFDynamoCompileScript(compileScript):
         
         elif "atom_number(" in line:
             data["definedAtoms"] += line
+
+        elif "constraint_point_define" in line:
+            data["constraints"] += line
             
         line = fortFile.readline()
     

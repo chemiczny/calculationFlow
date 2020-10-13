@@ -22,7 +22,7 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare):
 
     ########## INITIAL SCAN ###########################
     definedAtoms = data["definedAtoms"]
-    
+    constraints = data["constraints"]
     newNode = FDynamoNode(data["inputFile"], currentDir)
     newNode.coordsIn = data["coordsIn"]
     newNode.verification = [ "scan1D" ]
@@ -39,7 +39,7 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare):
     newNode.charge = data["charge"]
     newNode.method = data["method"]
     newNode.additionalKeywords = { "scanDir" : "+", "coordScanStart" : "" ,
-         "iterNo" : "70", "definedAtoms" : definedAtoms}
+         "iterNo" : "70", "definedAtoms" : definedAtoms, "constraints" : constraints }
     
     jobGraph.add_node( currentDir , data = newNode )
     newNode.generateInput()
@@ -123,7 +123,7 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare):
     newNode.templateKey = "QMMM_scan1D_mopac"
     newNode.readInitialScanCoord = True
     newNode.additionalKeywords = { "scanDir" : "-", "coordScanStart" : "" ,
-         "iterNo" : str(scanSteps), "definedAtoms" : definedAtoms}
+         "iterNo" : str(scanSteps), "definedAtoms" : definedAtoms,  "constraints" : constraints}
     newNode.coordsIn = "coordsStart.crd"
     
     jobGraph.add_node(reverseScan, data = newNode)
@@ -140,7 +140,7 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare):
             newNode.time = "72:00:00"
             newNode.templateKey = "QMMM_pmf"
             newNode.readInitialScanCoord = True
-            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms}
+            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints}
             newNode.coordsIn = "seed.-"+str(i)
             newNode.anotherCoordsSource = "seed.-"+str(i)
             
@@ -154,7 +154,7 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare):
     newNode.templateKey = "QMMM_scan1D_mopac"
     newNode.readInitialScanCoord = True
     newNode.additionalKeywords = { "scanDir" : "+", "coordScanStart" : "" ,
-         "iterNo" : str(scanSteps), "definedAtoms" : definedAtoms}
+         "iterNo" : str(scanSteps), "definedAtoms" : definedAtoms,  "constraints" : constraints}
     newNode.coordsIn = "coordsStart.crd"
     
     jobGraph.add_node(forwardScan, data = newNode)
@@ -171,7 +171,7 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare):
             newNode.templateKey = "QMMM_pmf"
             newNode.readInitialScanCoord = True
             newNode.anotherCoordsSource = "seed.+"+str(i)
-            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms}
+            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints}
             newNode.coordsIn = "seed.+"+str(i)
             
             jobGraph.add_node(stepDir, data = newNode)

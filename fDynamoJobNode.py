@@ -128,9 +128,10 @@ class FDynamoNode(JobNode):
             print("nie zdefiniowano atomow do RC!!!")
             
         atoms = atomsFromAtomSelection( self.additionalKeywords["definedAtoms"] )
+        print("Znaleziono: ", len(atoms), "atomow do wspolrzednej reakcji")
         getCoords( crdFile, atoms)
         
-        return  dist(atoms[0], atoms[1]) - dist(atoms[1], atoms[2])
+        return  dist(atoms[0], atoms[1]) - dist(atoms[-1], atoms[-2])
         
     def verifyScan1D(self):
         scanFile = join(self.path, "fort.900" )
@@ -374,11 +375,12 @@ class FDynamoNode(JobNode):
             else:
                 copyfile(join(parent.path, parent.coordsOut), join(self.path, self.coordsIn))
 
-        # if hasattr(self, "copyHessian"):
-        #     if self.copyHessian:
-        #         parentHessian = join(parent.path, "hessian.dump")
-        #         if isfile(parentHessian):
-        #             copyfile(parentHessian, join(self.path, "update.dump"))
+        #lol
+        if hasattr(self, "copyHessian"):
+            if self.copyHessian:
+                parentHessian = join(parent.path, "hessian.dump")
+                if isfile(parentHessian):
+                    copyfile(parentHessian, join(self.path, "update.dump"))
                 
         self.generateInput()
         
@@ -414,7 +416,7 @@ class FDynamoNode(JobNode):
         atoms = atomsFromAtomSelection( self.additionalKeywords["definedAtoms"] )
         getCoords( join(self.path, self.coordsIn), atoms)
         
-        return dist(atoms[0], atoms[1]) - dist(atoms[1], atoms[2])
+        return dist(atoms[0], atoms[1]) - dist(atoms[-2], atoms[-1])
         
     def generateInput(self):
         templateDir = expanduser("~/jobManagerPro/fDYNAMO")
