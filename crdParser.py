@@ -31,8 +31,11 @@ def getCoords(structure, atoms):
         
         if not a.residue in atomDict[a.subsystem]:
             atomDict[a.subsystem][a.residue]={}
+
+        if not a.atom in atomDict[a.subsystem][a.residue]:
+            atomDict[a.subsystem][a.residue][a.atom] = []
             
-        atomDict[a.subsystem][a.residue][a.atom] = a
+        atomDict[a.subsystem][a.residue][a.atom].append(a)
     
     source = open(structure)
     
@@ -73,8 +76,9 @@ def getCoords(structure, atoms):
                 atomName = lineSpl[1]
                 
                 if atomName in atoms2find:
-                    atom = atoms2find[atomName]
-                    atom.coords = [ float(c) for c in lineSpl[-3:] ]
+                    atoms = atoms2find[atomName]
+                    for atom in atoms:
+                        atom.coords = [ float(c) for c in lineSpl[-3:] ]
                 
                 
         line = source.readline()

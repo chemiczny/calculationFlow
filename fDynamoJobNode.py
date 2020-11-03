@@ -149,6 +149,8 @@ class FDynamoNode(JobNode):
 
         afterMaxPoints = 0
         afterMaxLimit = 4
+        beforeTSPoints = 0
+        beforeTSLimit = 4
 
         state = "init"
 
@@ -157,11 +159,15 @@ class FDynamoNode(JobNode):
             energy = float(line.split()[1])
 
             if state == "init":
-                if energy > lastEnergy:
+                if energy > lastEnergy and beforeTSPoints > beforeTSLimit:
                     state = "beforeTS"
+                elif energy > lastEnergy:
+                    beforeTSPoints += 1
+                else:
+                    beforeTSPoints = 0
 
             elif state == "beforeTS":
-                if energy < lastEnergy:
+                if energy < lastEnergy and lastEnergy > TSEnergy:
                     TSEnergy = lastEnergy
                     TSIndex = coordIndex - 1
                     afterMaxPoints = 1
@@ -175,7 +181,7 @@ class FDynamoNode(JobNode):
                     afterMaxPoints = 0
 
                 if afterMaxPoints > afterMaxLimit:
-                    break
+                    state = "beforeTS"
             
             line = sf.readline()
             coordIndex += 1
