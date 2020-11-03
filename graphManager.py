@@ -309,7 +309,7 @@ class GraphManager(JobManager):
                         slurmOk, comment = data.verifySlurm()
                         if not slurmOk:
                             print("Slurm error ", node, comment)
-                            # jobFailed = True
+                            jobFailed = True
                     except:
                         print("Cannot verify slurm file")
                     
@@ -327,10 +327,11 @@ class GraphManager(JobManager):
                                 restartJob = data.shouldBeRestarted()
                                 if restartJob:
                                     nodes2restart.append(node)
-                            else:
-                                continue
-                        else:
-                            continue
+                                    jobFailed = False
+
+
+                    if jobFailed:
+                        continue
                     
                     print("Find finished node: ")
                     print("\t",node)

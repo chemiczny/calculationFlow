@@ -128,7 +128,7 @@ class FDynamoNode(JobNode):
             print("nie zdefiniowano atomow do RC!!!")
             
         atoms = atomsFromAtomSelection( self.additionalKeywords["definedAtoms"] )
-        print("Znaleziono: ", len(atoms), "atomow do wspolrzednej reakcji")
+        # print("Znaleziono: ", len(atoms), "atomow do wspolrzednej reakcji")
         getCoords( crdFile, atoms)
         
         return  dist(atoms[0], atoms[1]) - dist(atoms[-1], atoms[-2])
@@ -310,10 +310,17 @@ class FDynamoNode(JobNode):
             
         slurmFile.write("#SBATCH --nodes=1\n")
         slurmFile.write("#SBATCH --cpus-per-task="+str(processors)+"\n")
-                        
-        if not slurmConfig:
+        timeRestrictions = True
+
+        if timeRestrictions in slurmConfig:
+            timeRestrictions = slurmConfig["timeRestrictions"]
+
+        if timeRestrictions:
             slurmFile.write("#SBATCH --time="+str(time)+"\n")
-            slurmFile.write("#SBATCH -p "+self.partition+"\n\n")
+            if hasattr(self, "partition"):
+                slurmFile.write("#SBATCH -p "+self.partition+"\n\n")
+            else:
+                slurmFile.write("#SBATCH -p plgrid\n\n")
             
 #        if "additionalLines" in slurmConfig:
 #            slurmFile.write(slurmConfig["additionalLines"]+"\n")

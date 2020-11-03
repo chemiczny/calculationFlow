@@ -34,10 +34,7 @@ def addSPcorrections(graph, node, theoryLow = "B3LYP/6-31G(d,p)", theoryHigh = "
 # Units(Ang,Deg)
 """
     newNode.additionalSection = """
-stoichiometry=H2O1
-solventname=Water2
 eps=4
-epsinf=1.77556
 """
     newNode.verification = "SP"
     newNode.readResults = True
@@ -55,10 +52,7 @@ epsinf=1.77556
 # Units(Ang,Deg)
 """
     newNode.additionalSection = """
-stoichiometry=H2O1
-solventname=Water2
 eps=4
-epsinf=1.77556
 """
     newNode.verification = "SP"
     newNode.readResults = True
