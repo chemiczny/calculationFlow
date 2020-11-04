@@ -25,6 +25,9 @@ class JobNode:
         self.measuredDistances = {}
         
         self.moduleAddLines = ""
+
+        self.requireHumanVerification = False
+        self.humanAccepted = False
         
     def verifySlurm(self):
         if not self.id:

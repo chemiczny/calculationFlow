@@ -338,8 +338,8 @@ class FDynamoNode(JobNode):
         if "fDYNAMOcompilerModule" in slurmConfig:
             slurmFile.write("module load "+ slurmConfig["fDYNAMOcompilerModule"] + " \n\n")
             slurmFile.write("make -f "+self.fDynamoPath + " SRC="+self.inputFile+" &> build.log\n")
-        else:
-            self.compileInput()
+        # else:
+        #     self.compileInput()
             
         
         slurmFile.write("./a.out &> " + self.logFile + "\n")
@@ -369,7 +369,7 @@ class FDynamoNode(JobNode):
             
         if not self.forceField and hasattr(parent, "forceField"):
             self.forceField = parent.forceField
-            
+
         if not isfile(join(self.path, self.forceField)):
             copyfile(join(parent.path, parent.forceField), join(self.path, self.forceField))
             
@@ -408,7 +408,10 @@ class FDynamoNode(JobNode):
             print("Generating slurmFile")
             self.writeSlurmScript("run.slurm", self.processors, self.time)
         
-        
+        slurmConfig = self.readSlurmConfig()
+        if not "fDYNAMOcompilerModule" in slurmConfig:
+            self.compileInput()
+
        # self.compileInput()
         
     def compileInput(self):

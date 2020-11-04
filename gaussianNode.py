@@ -217,8 +217,8 @@ class GaussianNode(JobNode):
                         
         timeRestrictions = True
 
-        if timeRestrictions in slurmConfig:
-            timeRestrictions = slurmConfig["timeRestrictions"]
+        if "timeRestrictions" in slurmConfig:
+            timeRestrictions = slurmConfig["timeRestrictions"].upper() == "TRUE"
 
         if timeRestrictions:
             slurmFile.write("#SBATCH --time="+str(time)+"\n")

@@ -13,9 +13,10 @@ from fDynamoJobNode import FDynamoNode
 from parsers import parseFDynamoCompileScript
 from graphManager import GraphManager
 import sys
+from glob import glob
 #from crdParser import getCoords, dist, atomsFromAtomSelection
 
-def generateTSsearchDynamoPMF(compFile, onlyPrepare):
+def generateTSsearchDynamoPMF(compFile, onlyPrepare, onlyRun):
     jobGraph = nx.DiGraph()
     currentDir = getcwd()
     data = parseFDynamoCompileScript(compFile)
@@ -39,10 +40,11 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare):
     newNode.charge = data["charge"]
     newNode.method = data["method"]
     newNode.additionalKeywords = { "scanDir" : "+", "coordScanStart" : "" ,
-         "iterNo" : "70", "definedAtoms" : definedAtoms, "constraints" : constraints }
+         "iterNo" : "100", "definedAtoms" : definedAtoms, "constraints" : constraints }
     
-    jobGraph.add_node( currentDir , data = newNode )
-    newNode.generateInput()
+    if not onlyRun:
+        jobGraph.add_node( currentDir , data = newNode )
+        newNode.generateInput()
     # newNode.compileInput()
     
     ################## TS SEARCH #####################################
@@ -55,8 +57,9 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare):
     newNode.coordsIn = "coordsStart.crd"
     newNode.coordsOut = "coordsDone.crd"
     
-    jobGraph.add_node(currentDir, data = newNode)
-    jobGraph.add_edge(startDir, currentDir)
+    if not onlyRun:
+        jobGraph.add_node(currentDir, data = newNode)
+        jobGraph.add_edge(startDir, currentDir)
     
     tsFoundDir = currentDir
     
@@ -68,9 +71,9 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare):
     newNode.coordsIn = "coordsStart.crd"
     newNode.coordsOut = "coordsDone.crd"
     
-
-    jobGraph.add_node(newDir, data = newNode)
-    jobGraph.add_edge(currentDir, newDir)
+    if not onlyRun:
+        jobGraph.add_node(newDir, data = newNode)
+        jobGraph.add_edge(currentDir, newDir)
     
     optDir = join(newDir, "opt")
     
@@ -82,9 +85,9 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare):
     newNode.coordsIn = "coordsStart.crd"
     newNode.coordsOut = "coordsDone.crd"
     
-
-    jobGraph.add_node(optDir, data = newNode)
-    jobGraph.add_edge( newDir, optDir)
+    if not onlyRun:
+        jobGraph.add_node(optDir, data = newNode)
+        jobGraph.add_edge( newDir, optDir)
     
     newDir = join(currentDir, "irc_forward")
     newNode = FDynamoNode("irc_forward.f90", newDir)
@@ -94,9 +97,9 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare):
     newNode.coordsIn = "coordsStart.crd"
     newNode.coordsOut = "coordsDone.crd"
     
-
-    jobGraph.add_node(newDir, data = newNode)
-    jobGraph.add_edge(currentDir, newDir)
+    if not onlyRun:
+        jobGraph.add_node(newDir, data = newNode)
+        jobGraph.add_edge(currentDir, newDir)
     
     optDir = join(newDir, "opt")
     
@@ -108,14 +111,14 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare):
     newNode.coordsIn = "coordsStart.crd"
     newNode.coordsOut = "coordsDone.crd"
     
-
-    jobGraph.add_node(optDir, data = newNode)
-    jobGraph.add_edge( newDir, optDir)
+    if not onlyRun:
+        jobGraph.add_node(optDir, data = newNode)
+        jobGraph.add_edge( newDir, optDir)
     
     ####################### SCAN FROM TS #########################
     
     scanSteps = 40
-    
+
     reverseScan = join(startDir, "TS1reverseScan")
     
     newNode = FDynamoNode("scan.f90", reverseScan)
@@ -127,7 +130,19 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare):
     newNode.coordsIn = "coordsStart.crd"
     
     jobGraph.add_node(reverseScan, data = newNode)
-    jobGraph.add_edge( tsFoundDir, reverseScan)
+    if onlyRun:
+        newNode.forceField = data["forceField"]
+        newNode.flexiblePart = data["flexiblePart"]
+        newNode.sequence = data["sequence"]
+        newNode.qmSele = data["qmSele"]
+        newNode.templateKey = "QMMM_scan1D_mopac"
+        newNode.fDynamoPath = data["fDynamoPath"]
+        newNode.charge = data["charge"]
+        newNode.method = data["method"]
+
+        newNode.status = "examined"
+    else:
+        jobGraph.add_edge( tsFoundDir, reverseScan)
     
     if not onlyPrepare:
         pmfDir = join( startDir, "PMF" )
@@ -158,7 +173,20 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare):
     newNode.coordsIn = "coordsStart.crd"
     
     jobGraph.add_node(forwardScan, data = newNode)
-    jobGraph.add_edge( tsFoundDir, forwardScan)
+
+    if onlyRun:
+        newNode.forceField = data["forceField"]
+        newNode.flexiblePart = data["flexiblePart"]
+        newNode.sequence = data["sequence"]
+        newNode.qmSele = data["qmSele"]
+        newNode.templateKey = "QMMM_scan1D_mopac"
+        newNode.fDynamoPath = data["fDynamoPath"]
+        newNode.charge = data["charge"]
+        newNode.method = data["method"]
+
+        newNode.status = "examined"
+    else:
+        jobGraph.add_edge( tsFoundDir, forwardScan)
     
     if not onlyPrepare:
         for i in range(1,scanSteps+1):
@@ -182,19 +210,23 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: initTSsearchDynamoPMF compileScanScript.sh [ only prepare for PMF, default False ]")
+        print("Usage: initTSsearchDynamoPMF compileScanScript.sh [ state: normal, onlyPrepare, onlyRun ]")
     else:
         compFile = sys.argv[1]
         currentDir = getcwd()
         
         onlyPrepare = False
+        onlyRun = False
         if len(sys.argv) > 2:
-            onlyPrepare = True
+            if sys.argv[2].upper() == "ONLYRUN":
+                onlyRun = True
+            elif sys.argv[2].upper() == "ONLYPrepare":
+                onlyPrepare = True
         
         sm = GraphManager()
         graph = sm.isGraphHere(currentDir)
         if not graph:
-            newGraph = generateTSsearchDynamoPMF(compFile, onlyPrepare)
+            newGraph = generateTSsearchDynamoPMF(compFile, onlyPrepare, onlyRun)
     
             
             result = sm.addGraph(newGraph, currentDir)
