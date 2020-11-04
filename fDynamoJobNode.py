@@ -316,10 +316,10 @@ class FDynamoNode(JobNode):
             
         slurmFile.write("#SBATCH --nodes=1\n")
         slurmFile.write("#SBATCH --cpus-per-task="+str(processors)+"\n")
-        timeRestrictions = True
+        timeRestrictions = False
 
-        if timeRestrictions in slurmConfig:
-            timeRestrictions = slurmConfig["timeRestrictions"]
+        if "timeRestrictions" in slurmConfig:
+            timeRestrictions = slurmConfig["timeRestrictions"].upper() == "TRUE"
 
         if timeRestrictions:
             slurmFile.write("#SBATCH --time="+str(time)+"\n")
@@ -369,18 +369,19 @@ class FDynamoNode(JobNode):
             
         if not self.forceField and hasattr(parent, "forceField"):
             self.forceField = parent.forceField
-            if not isfile(join(self.path, self.forceField)):
-                copyfile(join(parent.path, parent.forceField), join(self.path, self.forceField))
+            
+        if not isfile(join(self.path, self.forceField)):
+            copyfile(join(parent.path, parent.forceField), join(self.path, self.forceField))
             
         if not self.flexiblePart and hasattr(parent, "flexiblePart"):
             self.flexiblePart = parent.flexiblePart
-            if not isfile(join(self.path, self.flexiblePart)):
-                copyfile(join(parent.path, parent.flexiblePart), join(self.path, self.flexiblePart))
+        if not isfile(join(self.path, self.flexiblePart)):
+            copyfile(join(parent.path, parent.flexiblePart), join(self.path, self.flexiblePart))
             
         if not self.sequence and hasattr(parent, "sequence"):
             self.sequence = parent.sequence
-            if not isfile( join(self.path, self.sequence) ):
-                copyfile(join(parent.path, parent.sequence), join(self.path, self.sequence))
+        if not isfile( join(self.path, self.sequence) ):
+            copyfile(join(parent.path, parent.sequence), join(self.path, self.sequence))
         
         if self.getCoordsFromParent:
             if self.anotherCoordsSource:
