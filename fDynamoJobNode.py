@@ -213,20 +213,27 @@ class FDynamoNode(JobNode):
         while line:
             
             if "CPU time used =" in line:
-                print("\tNormal termination of fDYNAMO")
+                # print("\tNormal termination of fDYNAMO")
                 result = True
-                break
+                # break
 
             if "Dynamics Results" in line:
-                print("\tNormal termination of fDYNAMO")
+                # print("\tNormal termination of fDYNAMO")
                 result = True
-                break
+                # break
+
+            if "Error in MOPAC_SCF:Excessive number of SCF iterations." in line:
+            	print("\tfDYNAMO terminated abnormally: MOPAC error")
+            	result = False
             
             line =lf.readline()
         
         lf.close()
         if not result:
             print("\tfDYNAMO terminated abnormally")
+        else:
+        	print("\tNormal termination of fDYNAMO")
+        	
         return result
     
     def verifyOpt(self):

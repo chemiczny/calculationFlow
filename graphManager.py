@@ -361,7 +361,7 @@ class GraphManager(JobManager):
         #     children2run |= set( graph.successors(node ))
             
             
-        if not children2run:
+        if not children2run and graphKey in graph.nodes:
             if graph.nodes[graphKey]["data"].status == "waitingForParent":
                    children2run.add(graphKey)
 

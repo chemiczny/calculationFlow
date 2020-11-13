@@ -199,7 +199,7 @@ class GaussianNode(JobNode):
                 imaginaryFreqs += 1
                 
         print("\t imaginary freq no: ", imaginaryFreqs)
-        return imaginaryFreqs == self.noOfExcpectedImaginaryFrequetions
+        return imaginaryFreqs == self.noOfExcpectedImaginaryFrequetions and self.verifySP()
         
     def writeSlurmScript( self, filename, processors, time):
         fullPath = join(self.path, filename)
