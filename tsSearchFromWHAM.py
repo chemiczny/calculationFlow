@@ -209,14 +209,17 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index):
     jobGraph.add_edge( newDir, optDir)
     
 
-if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print("Usage: graphTSsearchWHAM wham.log/RC compileScanScript.sh numberOfTS2find")
+    if len(sys.argv) < 4:
+        print("Usage: graphTSsearchWHAM wham.log/RC compileScanScript.sh numberOfTS2find addName")
     else:
         whamLog = sys.argv[1]
         compileScript = sys.argv[2]
         TSno = int(sys.argv[3])
         
+        addName = ""
+        if len(sys.argv) > 4:
+            addName = sys.argv[4]
+
         if isfile(whamLog):
             tsReactionCoord = getTScoords(whamLog)
         else:
@@ -228,7 +231,7 @@ if __name__ == "__main__":
 
         currentDir = abspath(dirname(compileScript))
 
-        graphDir = join( getcwd(), "multiTSsearch" )
+        graphDir = join( getcwd(), "multiTSsearch"+addName )
 
         sm = GraphManager()
         graph = sm.isGraphHere(graphDir)
