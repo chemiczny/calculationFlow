@@ -143,14 +143,18 @@ class FDynamoNode(JobNode):
         
         line = sf.readline()
         TSEnergy = float(line.split()[1])
-        TSIndex = coordIndex
+        TSIndex = -1
 
         lastEnergy = TSEnergy
 
-        afterMaxPoints = 0
-        afterMaxLimit = 4
-        beforeTSPoints = 0
-        beforeTSLimit = 4
+        TSEnergyCandidate = 0
+        TSIndexCandidate = 0
+
+        energyRisingPoints = 0
+        energyRisingLimit = 2
+
+        energyDecreasingPoints = 0
+        energyDecreasinfLimit = 4
 
         state = "init"
 
@@ -159,29 +163,41 @@ class FDynamoNode(JobNode):
             energy = float(line.split()[1])
 
             if state == "init":
-                if energy > lastEnergy and beforeTSPoints > beforeTSLimit:
-                    state = "beforeTS"
-                elif energy > lastEnergy:
-                    beforeTSPoints += 1
+                #sprawdz czy energia rosnie monotonicznie przez jakis czas
+                if energy > lastEnergy:
+                    energyRisingPoints += 1
                 else:
-                    beforeTSPoints = 0
+                    energyRisingPoints = 0
 
+                if energy > lastEnergy and energyRisingPoints > energyRisingLimit:
+                    state = "beforeTS"
+                    print("init state eneded ", coordIndex)
+
+                    
+                #znajdz lokalne maksimum, pod warunkiem, ze jest najwieksze z dotychczas znalezionych
             elif state == "beforeTS":
                 if energy < lastEnergy and lastEnergy > TSEnergy:
-                    TSEnergy = lastEnergy
-                    TSIndex = coordIndex - 1
+                    TSEnergyCandidate = lastEnergy
+                    TSIndexCandidate = coordIndex - 1
                     afterMaxPoints = 1
                     state = "afterTS"
 
+                    print("TS candidate ", coordIndex-1)
+                #zweryfikuj czy funkcja jest malejaca przez jakis czas
             elif state == "afterTS":
-                if energy < TSEnergy:
-                    afterMaxPoints += 1
+                if energy < lastEnergy:
+                    energyDecreasingPoints += 1
                 else:
-                    state = "beforeTS"
-                    afterMaxPoints = 0
+                    energyDecreasingPoints = 0
+                    energyRisingPoints = 1
+                    state = "init"
 
-                if afterMaxPoints > afterMaxLimit:
-                    state = "beforeTS"
+
+                if energyDecreasingPoints > energyDecreasinfLimit:
+                    TSEnergy = TSEnergyCandidate
+                    TSIndex = TSIndexCandidate
+                    state = "init"
+
             
             line = sf.readline()
             coordIndex += 1
