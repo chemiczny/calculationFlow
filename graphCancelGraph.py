@@ -33,12 +33,15 @@ if __name__ == "__main__":
             if status != "running":
                 continue
             
-            id2remove.append(graph.nodes[node]["data"].id)
+            if graph.nodes[node]["data"].id != None:
+                id2remove.append(graph.nodes[node]["data"].id)
 
         if not id2remove:
             quit()
             
+
         srem = SremoveManager()
         system("scancel "+" ".join(id2remove))
         srem.sremove(id2remove)
+
         

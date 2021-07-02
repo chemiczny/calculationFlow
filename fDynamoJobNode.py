@@ -397,11 +397,11 @@ class FDynamoNode(JobNode):
                 copyfile(join(parent.path, parent.coordsOut), join(self.path, self.coordsIn))
 
         #lol
-        if hasattr(self, "copyHessian"):
-            if self.copyHessian:
-                parentHessian = join(parent.path, "hessian.dump")
-                if isfile(parentHessian):
-                    copyfile(parentHessian, join(self.path, "update.dump"))
+        # if hasattr(self, "copyHessian"):
+        #     if self.copyHessian:
+        #         parentHessian = join(parent.path, "hessian.dump")
+        #         if isfile(parentHessian):
+        #             copyfile(parentHessian, join(self.path, "update.dump"))
                 
         self.generateInput()
         

@@ -81,7 +81,7 @@ def rewriteXyz( molecule, mapping, filename ):
     xyzF.close()
 
 def molecule2graph(atoms):   
-    thresholds = { "C" : 1.65, "O" : 1.65, "N" : 1.7, "S" : 2.2,
+    thresholds = { "C" : 2, "O" : 1.65, "N" : 1.7, "S" : 2.2,
                   "F" : 1.6, "CL" : 2.0, "BR" : 2.1, "I" : 2.2 }
                   
     G = nx.Graph()
@@ -126,6 +126,7 @@ class FitNode(JobNode):
         JobNode.__init__(self,inputFile, path)
         self.templateAbs = abspath(templateXyz)
         self.templateBase = join(self.path, "reindexed_" + basename(self.templateAbs) )
+        self.time = "0:10:00"
         
     def generateFromParent(self, parentData, mol2file = "keto.mol2"):
         gespSource = join( parentData.path, mol2file )
@@ -193,13 +194,19 @@ exit
             
         slurmFile.write("#SBATCH --nodes=1\n")
         slurmFile.write("#SBATCH --cpus-per-task=1\n")
-                        
-        if not slurmConfig:
-            slurmFile.write("#SBATCH --time=1:00:00\n")
+        time = self.time
+
+        timeRestrictions = True
+
+        if timeRestrictions in slurmConfig:
+            timeRestrictions = slurmConfig["timeRestrictions"]
+
+        if timeRestrictions:
+            slurmFile.write("#SBATCH --time="+str(time)+"\n")
             if hasattr(self, "partition"):
-                slurmFile.write("#SBATCH -p plgrid-short\n\n")
+                slurmFile.write("#SBATCH -p "+self.partition+"\n\n")
             else:
-                slurmFile.write("#SBATCH -p plgrid\n\n")
+                slurmFile.write("#SBATCH -p plgrid-testing\n\n")
 
 
         slurmFile.write("module add plgrid/tools/vmd/1.9.3\n")

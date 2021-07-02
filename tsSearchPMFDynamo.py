@@ -7,18 +7,42 @@ Created on Fri Dec  6 13:07:14 2019
 """
 
 import networkx as nx
-from os import getcwd
-from os.path import join
+from os import getcwd, makedirs
+from os.path import join, isdir, basename
 from fDynamoJobNode import FDynamoNode
 from parsers import parseFDynamoCompileScript
 from graphManager import GraphManager
 import sys
 from glob import glob
+from shutil import copyfile
 #from crdParser import getCoords, dist, atomsFromAtomSelection
+def rewriteFlexibleSeleFile( original ):
+    inF = open(original, 'r')
+    line = inF.readline().upper()
+    
+    corrected = ""
+    
+    if "MY_SELE_QMNB" in line:
+        corrected = original
+    else:
+        corrected = original.replace(".f90", "_qmnb.f90")
+        
+        cF = open(corrected, 'w')
+        cF.write( line.replace("MY_SELE(" , "MY_SELE_QMNB(") )
+        
+        line = inF.readline()
+        while line:
+            cF.write(line)
+            line = inF.readline()
+    
+    inF.close()
+    
+    return corrected
 
-def generateTSsearchDynamoPMF(compFile, onlyPrepare, onlyRun):
+def generateTSsearchDynamoPMF(compFile, onlyPrepare, onlyRun, runDFT):
     jobGraph = nx.DiGraph()
     currentDir = getcwd()
+    rootDir = currentDir
     data = parseFDynamoCompileScript(compFile)
 
     ########## INITIAL SCAN ###########################
@@ -40,12 +64,12 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare, onlyRun):
     newNode.charge = data["charge"]
     newNode.method = data["method"]
     newNode.additionalKeywords = { "scanDir" : "+", "coordScanStart" : "" ,
-         "iterNo" : "100", "definedAtoms" : definedAtoms, "constraints" : constraints }
+         "iterNo" : "80", "definedAtoms" : definedAtoms, "constraints" : constraints }
     
     if not onlyRun:
         jobGraph.add_node( currentDir , data = newNode )
         newNode.generateInput()
-    # newNode.compileInput()
+        # newNode.compileInput()
     
     ################## TS SEARCH #####################################
     startDir, currentDir = currentDir, join(currentDir, "ts_search")
@@ -62,6 +86,50 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare, onlyRun):
         jobGraph.add_edge(startDir, currentDir)
     
     tsFoundDir = currentDir
+
+    if runDFT:
+        gaussianFlexibleSele = rewriteFlexibleSeleFile(  join(rootDir, data["flexiblePart"]) )
+        tsGaussianDir = join(tsFoundDir, "b3lyp")
+
+        if not isdir(tsGaussianDir):
+            makedirs(tsGaussianDir)
+
+        newNode = FDynamoNode("tsSearch", tsGaussianDir)
+        newNode.verification = ["Opt" , "Freq"]
+        newNode.noOfExcpectedImaginaryFrequetions = 1
+        newNode.templateKey = "QMMM_opt_gaussian"
+        newNode.fDynamoPath = "/net/people/plgglanow/fortranPackages/AMBER-g09/AMBER-dynamo/makefile"
+        newNode.additionalKeywords =  { "ts_search" : "true", "method" : "B3LYP", "basis" : "6-31G(d,p)" , "multiplicity" : 1, "otherOptions" : "" }
+        newNode.coordsIn = "coordsStart.crd"
+        newNode.coordsOut = "coordsDone.crd"
+        newNode.flexiblePart = basename(gaussianFlexibleSele)
+        newNode.partition = "plgrid-gpu\n#SBATCH --gres=gpu:1\n#SBATCH -A plgksdhphdgpu"
+        copyfile( gaussianFlexibleSele, join(tsGaussianDir, newNode.flexiblePart) )
+        newNode.processors = 24
+        newNode.time = "30:00:00"
+        newNode.moduleAddLines = "module add plgrid/apps/gaussian/g16.B.01"
+
+        jobGraph.add_node(tsGaussianDir, data = newNode)
+        jobGraph.add_edge( tsFoundDir, tsGaussianDir )
+
+        spDir = join(tsGaussianDir, "SP")
+        dftNode = FDynamoNode("DFT-SP-", spDir)
+        dftNode.verification = ["SP"]
+        dftNode.templateKey = "QMMM_sp_gaussian"
+        dftNode.additionalKeywords =  {  "method" : "B3LYP", "basis" : "6-311++G(2d,2p)" , "multiplicity" : 1, "otherOptions" : ""   }
+        dftNode.coordsIn = "coordsStart.crd"
+        dftNode.coordsOut = "coordsDone.crd"
+        dftNode.flexiblePart = basename(gaussianFlexibleSele)
+        dftNode.processors = 24
+        dftNode.time = "30:00:00"
+        dftNode.partition = "plgrid-gpu\n#SBATCH --gres=gpu:1\n#SBATCH -A plgksdhphdgpu"
+        dftNode.moduleAddLines = "module add plgrid/apps/gaussian/g16.B.01"
+
+        jobGraph.add_node(spDir, data = dftNode)
+        jobGraph.add_edge(tsGaussianDir, spDir)
+
+
+
     
     newDir = join(currentDir, "irc_reverse")
     newNode = FDynamoNode("irc_reverse.f90", newDir)
@@ -88,6 +156,46 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare, onlyRun):
     if not onlyRun:
         jobGraph.add_node(optDir, data = newNode)
         jobGraph.add_edge( newDir, optDir)
+
+    if runDFT:
+        tsGaussianDir = join(optDir, "b3lyp")
+
+        if not isdir(tsGaussianDir):
+            makedirs(tsGaussianDir)
+
+        newNode = FDynamoNode("opt", tsGaussianDir)
+        newNode.verification = ["Opt" , "Freq"]
+        newNode.noOfExcpectedImaginaryFrequetions = 0
+        newNode.templateKey = "QMMM_opt_gaussian"
+        newNode.fDynamoPath = "/net/people/plgglanow/fortranPackages/AMBER-g09/AMBER-dynamo/makefile"
+        newNode.additionalKeywords =  { "ts_search" : "false", "method" : "B3LYP", "basis" : "6-31G(d,p)" , "multiplicity" : 1, "otherOptions" : "" }
+        newNode.coordsIn = "coordsStart.crd"
+        newNode.coordsOut = "coordsDone.crd"
+        newNode.flexiblePart = basename(gaussianFlexibleSele)
+        copyfile( gaussianFlexibleSele, join(tsGaussianDir, newNode.flexiblePart) )
+        newNode.processors = 24
+        newNode.time = "30:00:00"
+        newNode.partition = "plgrid-gpu\n#SBATCH --gres=gpu:1\n#SBATCH -A plgksdhphdgpu"
+        newNode.moduleAddLines = "module add plgrid/apps/gaussian/g16.B.01"
+
+        jobGraph.add_node(tsGaussianDir, data = newNode)
+        jobGraph.add_edge( optDir, tsGaussianDir )
+
+        spDir = join(tsGaussianDir, "SP")
+        dftNode = FDynamoNode("DFT-SP-", spDir)
+        dftNode.verification = ["SP"]
+        dftNode.templateKey = "QMMM_sp_gaussian"
+        dftNode.additionalKeywords =  {  "method" : "B3LYP", "basis" : "6-311++G(2d,2p)" , "multiplicity" : 1 , "otherOptions" : ""  }
+        dftNode.coordsIn = "coordsStart.crd"
+        dftNode.coordsOut = "coordsDone.crd"
+        dftNode.flexiblePart = basename(gaussianFlexibleSele)
+        dftNode.processors = 24
+        dftNode.time = "30:00:00"
+        dftNode.partition = "plgrid-gpu\n#SBATCH --gres=gpu:1\n#SBATCH -A plgksdhphdgpu"
+        dftNode.moduleAddLines ="module add plgrid/apps/gaussian/g16.B.01"
+
+        jobGraph.add_node(spDir, data = dftNode)
+        jobGraph.add_edge(tsGaussianDir, spDir)
     
     newDir = join(currentDir, "irc_forward")
     newNode = FDynamoNode("irc_forward.f90", newDir)
@@ -114,6 +222,46 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare, onlyRun):
     if not onlyRun:
         jobGraph.add_node(optDir, data = newNode)
         jobGraph.add_edge( newDir, optDir)
+
+    if runDFT:
+        tsGaussianDir = join(optDir, "b3lyp")
+
+        if not isdir(tsGaussianDir):
+            makedirs(tsGaussianDir)
+
+        newNode = FDynamoNode("opt", tsGaussianDir)
+        newNode.verification = ["Opt" , "Freq"]
+        newNode.noOfExcpectedImaginaryFrequetions = 0
+        newNode.templateKey = "QMMM_opt_gaussian"
+        newNode.fDynamoPath = "/net/people/plgglanow/fortranPackages/AMBER-g09/AMBER-dynamo/makefile"
+        newNode.additionalKeywords =  { "ts_search" : "false", "method" : "B3LYP", "basis" : "6-31G(d,p)" , "multiplicity" : 1 , "otherOptions" : ""}
+        newNode.coordsIn = "coordsStart.crd"
+        newNode.coordsOut = "coordsDone.crd"
+        newNode.flexiblePart = basename(gaussianFlexibleSele)
+        copyfile( gaussianFlexibleSele, join(tsGaussianDir, newNode.flexiblePart) )
+        newNode.processors = 24
+        newNode.time = "30:00:00"
+        newNode.partition = "plgrid-gpu\n#SBATCH --gres=gpu:1\n#SBATCH -A plgksdhphdgpu"
+        newNode.moduleAddLines ="module add plgrid/apps/gaussian/g16.B.01"
+
+        jobGraph.add_node(tsGaussianDir, data = newNode)
+        jobGraph.add_edge( optDir, tsGaussianDir )
+
+        spDir = join(tsGaussianDir, "SP")
+        dftNode = FDynamoNode("DFT-SP-", spDir)
+        dftNode.verification = ["SP"]
+        dftNode.templateKey = "QMMM_sp_gaussian"
+        dftNode.additionalKeywords =  {  "method" : "B3LYP", "basis" : "6-311++G(2d,2p)" , "multiplicity" : 1, "otherOptions" : ""   }
+        dftNode.coordsIn = "coordsStart.crd"
+        dftNode.coordsOut = "coordsDone.crd"
+        dftNode.flexiblePart = basename(gaussianFlexibleSele)
+        dftNode.processors = 24
+        dftNode.time = "30:00:00"
+        dftNode.partition = "plgrid-gpu\n#SBATCH --gres=gpu:1\n#SBATCH -A plgksdhphdgpu"
+        dftNode.moduleAddLines = "module add plgrid/apps/gaussian/g16.B.01"
+
+        jobGraph.add_node(spDir, data = dftNode)
+        jobGraph.add_edge(tsGaussianDir, spDir)
     
     ####################### SCAN FROM TS #########################
     
@@ -210,23 +358,30 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare, onlyRun):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: initTSsearchDynamoPMF compileScanScript.sh [ state: normal, onlyPrepare, onlyRun ]")
+        print("Usage: initTSsearchDynamoPMF compileScanScript.sh [ state: normal(default), onlyPrepare, onlyRun ] [ DFT: true, false(default) ]")
     else:
         compFile = sys.argv[1]
         currentDir = getcwd()
         
         onlyPrepare = False
         onlyRun = False
+        runDFT = False
         if len(sys.argv) > 2:
             if sys.argv[2].upper() == "ONLYRUN":
                 onlyRun = True
-            elif sys.argv[2].upper() == "ONLYPrepare":
+            elif sys.argv[2].upper() == "ONLYPREPARE":
                 onlyPrepare = True
+
+        if len(sys.argv) > 3:
+            if sys.argv[3].upper() == "TRUE":
+                runDFT = True
+            elif sys.argv[3].upper() == "FALSE":
+                runDFT = True
         
         sm = GraphManager()
         graph = sm.isGraphHere(currentDir)
         if not graph:
-            newGraph = generateTSsearchDynamoPMF(compFile, onlyPrepare, onlyRun)
+            newGraph = generateTSsearchDynamoPMF(compFile, onlyPrepare, onlyRun, runDFT)
     
             
             result = sm.addGraph(newGraph, currentDir)

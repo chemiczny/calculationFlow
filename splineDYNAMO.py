@@ -78,13 +78,15 @@ def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, gra
     
     ################## SP DFT + SP SEMIEMPIRICAL #####################################
     
-    for struct in structures:
+    for i, struct in enumerate(structures):
+        print(struct)
         RC = rootNode.measureRC(struct)
 
         if RC < minRC or RC > maxRC:
             continue
 
-        dirNo = struct.split(".")[-1]
+        # dirNo = struct.split(".")[-1]
+        dirNo = str(i)
         dirname = join( graphDir,  dirNo )
         
         dftDir = join(dirname, method)
