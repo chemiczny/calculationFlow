@@ -1,4 +1,5 @@
 
+
 cat <<eof > md_npt.in
   MD production run at 300K (constant pressure langevin; 1.0 ns)
  &cntrl
@@ -16,7 +17,7 @@ eof
 for i in {ns}
 do
         j=$(( $i + 1 ))
-        $PMEMD_RUN -O -i md_npt.in -c {mdDir}/md_rst_$i.nc -p {topology} -o {mdDir}/md$j.out -x {mdDir}/md$j.nc -r {mdDir}/md_rst_$j.nc 
+        $AMBERHOME/bin/pmemd.cuda -O -i md_npt.in -c {mdDir}/md_rst_$i.nc -p {topology} -o {mdDir}/md$j.out -x {mdDir}/md$j.nc -r {mdDir}/md_rst_$j.nc 
         rm -f mdinfo
 done
 

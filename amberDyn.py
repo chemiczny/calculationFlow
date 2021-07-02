@@ -81,16 +81,18 @@ def generateGraph(topologyFile, coordinates):
     md1Node = AmberNode("amber.in", md1Dir, md1Dir, topologyFile , "md_rst_0.nc")
     md1Node.runType = "standardMD"
     md1Node.nsOfSimulation = 20
-    md1Node.time = "72:00:00"
-    md1Node.partition = "plgrid"
+    md1Node.time = "30:00:00"
+    md1Node.processors = 1
+    md1Node.partition = "plgrid-gpu\n#SBATCH --gres=gpu:1\n#SBATCH -A plgksdhphdgpu"
     jobGraph.add_node(md1Dir, data = md1Node)
     jobGraph.add_edge(heatingDir, md1Dir)
     
     md2Dir = join(md1Dir, "MD_part2")
     md2Node = AmberNode("amber.in", md2Dir, md1Dir, topologyFile)
     md2Node.runType = "standardMD"
-    md2Node.time = "72:00:00"
-    md2Node.partition = "plgrid"
+    md2Node.time = "30:00:00"
+    md2Node.processors = 1
+    md2Node.partition = "plgrid-gpu\n#SBATCH --gres=gpu:1\n#SBATCH -A plgksdhphdgpu"
     md2Node.nsOfSimulation = 20
     jobGraph.add_node(md2Dir, data = md2Node)
     jobGraph.add_edge(md1Dir, md2Dir)
@@ -98,8 +100,9 @@ def generateGraph(topologyFile, coordinates):
     md3Dir = join(md1Dir, "MD_part3")
     md3Node = AmberNode("amber.in", md3Dir, md1Dir, topologyFile)
     md3Node.runType = "standardMD"
-    md3Node.time = "72:00:00"
-    md3Node.partition = "plgrid"
+    md3Node.time = "30:00:00"
+    md3Node.processors = 1
+    md3Node.partition = "plgrid-gpu\n#SBATCH --gres=gpu:1\n#SBATCH -A plgksdhphdgpu"
     md3Node.nsOfSimulation = 20
     jobGraph.add_node(md3Dir, data = md3Node)
     jobGraph.add_edge(md2Dir, md3Dir)

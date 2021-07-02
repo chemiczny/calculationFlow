@@ -57,7 +57,12 @@ class CppTrajNode(JobNode):
         slurmFile.write("#SBATCH --nodes=1\n")
         slurmFile.write("#SBATCH --ntasks-per-node=1\n")
                         
-        if not slurmConfig:
+        timeRestrictions = True
+
+        if timeRestrictions in slurmConfig:
+            timeRestrictions = slurmConfig["timeRestrictions"]
+
+        if timeRestrictions:
             slurmFile.write("#SBATCH --time=1:00:00\n")
             if hasattr(self, "partition"):
                 slurmFile.write("#SBATCH -p {partition}\n\n".format(partition = self.partition))

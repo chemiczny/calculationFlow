@@ -7,7 +7,7 @@ Created on Fri Jun 19 19:41:50 2020
 """
 
 from jobNode import JobNode
-from os.path import join, expanduser, basename
+from os.path import join, expanduser, basename, isfile
 from glob import glob
 from shutil import copyfile
 
@@ -89,7 +89,14 @@ class AmberNode(JobNode):
         scriptFile.write(inputText)
     
     def writeSlurmScript( self, filename):
+        # print("Writing new slurm file ...")
         fullPath = join(self.path, filename)
+        # print(fullPath)
+        self.slurmFile = filename
+        if isfile(fullPath):
+            print("Slurm file already exists! Not generating!")
+            return
+            
         slurmFile = open(fullPath, 'w')
         
         slurmConfig = self.readSlurmConfig()
@@ -136,7 +143,7 @@ class AmberNode(JobNode):
         
         slurmFile.close()
         
-        self.slurmFile = filename
+        # self.slurmFile = filename
         
     def verifyLog(self):
         return True
