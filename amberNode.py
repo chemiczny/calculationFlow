@@ -27,16 +27,19 @@ class AmberNode(JobNode):
         self.runType = None
         self.nsOfSimulation = None
         
-        self.templateDict = { "standardOptimization" : "standardOptimization.slurm" , "standardHeating" : "standardHeating.slurm", "standardMD" : "standardMD.slurm" }
+        self.templateDict = { "standardOptimization" : "standardOptimization.slurm" , "standardHeating" : "standardHeating.slurm", 
+            "standardMD" : "standardMD.slurm" ,"standardCooling" : "standardCooling.slurm" }
         
     def generateFromParent(self, parentData):
-        copyfile( join(parentData.path, parentData.topology), join(self.path, self.topology) )
+        if hasattr(parentData, "topology"):
+            copyfile( join(parentData.path, parentData.topology), join(self.path, self.topology) )
         
         if self.coordsIn == None:
             self.coordsIn = "initial_rst.nc"
 
-        if parentData.coordsOut != None:
-            copyfile( join(parentData.path, parentData.coordsOut), join(self.path, self.coordsIn) )
+        if hasattr(parentData, "coordsOut"):
+            if parentData.coordsOut != None:
+                copyfile( join(parentData.path, parentData.coordsOut), join(self.path, self.coordsIn) )
         
         self.writeSlurmScript(self.inputFile)
     
@@ -65,7 +68,16 @@ class AmberNode(JobNode):
         scriptFile.write(inputText)
     
     def setupStandardCooling(self, scriptFile, template):
-        pass
+        self.coordsOut = "cooled.nc"
+        replaceDict = { "topology" : self.topology, "coordsIn" : self.coordsIn, "processors" : self.processors, "coordsOut" : self.coordsOut }
+        
+        inputTemplateFile = open(template, 'r')
+        inputTemplate = inputTemplateFile.read()
+        inputTemplateFile.close()
+        
+        inputText = inputTemplate.format( **replaceDict )
+        
+        scriptFile.write(inputText)
     
     def setupStandardMD(self, scriptFile, template):
         mdFiles = list(glob( join(self.mdDirectory, "md_rst_*.nc") ))
@@ -138,6 +150,8 @@ class AmberNode(JobNode):
             self.setupStandardHeating(slurmFile, template)
         elif self.runType == "standardMD":
             self.setupStandardMD(slurmFile, template)
+        elif self.runType == "standardCooling":
+            self.setupStandardCooling(slurmFile, template)
         else:
             raise Exception("not implemented")
         

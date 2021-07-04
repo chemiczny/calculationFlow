@@ -196,7 +196,7 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     newNode.noOfExcpectedImaginaryFrequetions = 1
     newNode.templateKey = "QMMM_opt_gaussian"
     newNode.fDynamoPath = "/net/people/plgglanow/fortranPackages/AMBER-g09/AMBER-dynamo/makefile"
-    newNode.additionalKeywords =  { "ts_search" : "true", "method" : method, "basis" : basis , "multiplicity" : 1 }
+    newNode.additionalKeywords =  { "ts_search" : "true", "method" : method, "basis" : basis , "multiplicity" : 1, "otherOptions" : "" }
     newNode.coordsIn = "coordsStart.crd"
     newNode.coordsOut = "coordsDone.crd"
     newNode.flexiblePart = basename(gaussianFelxSele)
@@ -216,7 +216,7 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     newNode = FDynamoNode("irc_reverse.f90", newDir)
     newNode.verification = ["SP"]
     newNode.templateKey = "QMMM_irc_gaussian"
-    newNode.additionalKeywords = { "IRC_dir" : "-1", "method" : method, "basis" : basis , "multiplicity" : 1 }
+    newNode.additionalKeywords = { "IRC_dir" : "-1", "method" : method, "basis" : basis , "multiplicity" : 1 , "otherOptions" : ""}
     newNode.coordsIn = "coordsStart.crd"
     newNode.coordsOut = "coordsDone.crd"
     newNode.copyHessian = True
@@ -235,7 +235,7 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     newNode.verification = ["Opt", "Freq"]
     newNode.noOfExcpectedImaginaryFrequetions = 0
     newNode.templateKey = "QMMM_opt_gaussian"
-    newNode.additionalKeywords = { "ts_search" : "false" , "definedAtoms" : baseData["definedAtoms"], "method" : method, "basis" : basis , "multiplicity" : 1 }
+    newNode.additionalKeywords = { "ts_search" : "false" , "definedAtoms" : baseData["definedAtoms"], "method" : method, "basis" : basis , "multiplicity" : 1, "otherOptions" : "" }
     newNode.coordsIn = "coordsStart.crd"
     newNode.coordsOut = "coordsDone"+str(index)+".crd"
     newNode.measureRCinOutput = True
@@ -252,7 +252,7 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     newNode = FDynamoNode("irc_forward.f90", newDir)
     newNode.verification = ["SP"]
     newNode.templateKey = "QMMM_irc_gaussian"
-    newNode.additionalKeywords = { "IRC_dir" : "1" , "method" : method, "basis" : basis , "multiplicity" : 1 }
+    newNode.additionalKeywords = { "IRC_dir" : "1" , "method" : method, "basis" : basis , "multiplicity" : 1 , "otherOptions" : ""}
     newNode.coordsIn = "coordsStart.crd"
     newNode.coordsOut = "coordsDone.crd"
     newNode.copyHessian = True
@@ -270,7 +270,7 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     newNode.verification = ["Opt", "Freq"]
     newNode.noOfExcpectedImaginaryFrequetions = 0
     newNode.templateKey = "QMMM_opt_gaussian"
-    newNode.additionalKeywords = { "ts_search" : "false" , "definedAtoms" : baseData["definedAtoms"], "method" : method, "basis" : basis , "multiplicity" : 1}
+    newNode.additionalKeywords = { "ts_search" : "false" , "definedAtoms" : baseData["definedAtoms"], "method" : method, "basis" : basis , "multiplicity" : 1, "otherOptions" : ""}
     newNode.coordsIn = "coordsStart.crd"
     newNode.coordsOut = "coordsDone"+str(index)+".crd"
     newNode.measureRCinOutput = True
