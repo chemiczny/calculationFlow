@@ -137,7 +137,8 @@ class FDynamoNode(JobNode):
     def verifyScan1D(self):
         scanFile = join(self.path, "fort.900" )
         if not isfile(scanFile):
-            raise Exception("File with scan results not found")
+            print("There is no scan output data!")
+            return False
             
         coordIndex = 0
         sf = open(scanFile, 'r')
@@ -155,7 +156,7 @@ class FDynamoNode(JobNode):
         energyRisingLimit = 2
 
         energyDecreasingPoints = 0
-        energyDecreasinfLimit = 4
+        energyDecreasinfLimit = 3
 
         state = "init"
 
@@ -180,7 +181,7 @@ class FDynamoNode(JobNode):
                 if energy < lastEnergy and lastEnergy > TSEnergy:
                     TSEnergyCandidate = lastEnergy
                     TSIndexCandidate = coordIndex - 1
-                    afterMaxPoints = 1
+                    energyDecreasingPoints = 1
                     state = "afterTS"
 
                     # print("TS candidate ", coordIndex-1)

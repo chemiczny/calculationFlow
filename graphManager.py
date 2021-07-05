@@ -301,7 +301,7 @@ class GraphManager(JobManager):
         for node in graph.nodes:
             data = graph.nodes[node]["data"]
             
-            if data.status == "running"  :
+            if data.status == "running"  or data.status == "failed" :
                 jobFailed = False
                 
                 if self.jobIsFinished(data, results):
@@ -331,6 +331,9 @@ class GraphManager(JobManager):
 
 
                     if jobFailed:
+                        graph.nodes[node]["data"].status = "failed"
+                        # print("Marking node as failed: ")
+                        print("\t",node)
                         continue
                     
                     print("Find finished node: ")
@@ -338,6 +341,9 @@ class GraphManager(JobManager):
                     finishedNodes.append(node)
                     graph.nodes[node]["data"].analyseLog()
                     graph.nodes[node]["data"].status = "examined"
+                else:
+                    graph.nodes[node]["data"].status = "running"
+
             elif data.status == "finished":
                 print("Find finished node: ")
                 print("\t",node)

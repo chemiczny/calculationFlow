@@ -29,7 +29,7 @@ if __name__ == "__main__":
             
             status = graph.nodes[node]["data"].status
             
-            if status != "examined":
+            if status != "examined" and status != "failed":
                 continue
             
             id2remove.append(graph.nodes[node]["data"].id)
