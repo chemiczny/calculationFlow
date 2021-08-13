@@ -312,6 +312,7 @@ class GraphManager(JobManager):
                             jobFailed = True
                     except:
                         print("Cannot verify slurm file")
+                        jobFailed = True
                     
                     try:
                         logOk = data.verifyLog()
@@ -320,6 +321,7 @@ class GraphManager(JobManager):
                             jobFailed = True
                     except:
                         print("Cannot verify log file: "+node)
+                        jobFailed = True
                         
                     if jobFailed:
                         if hasattr(data, "autorestart"):
@@ -436,8 +438,14 @@ class GraphManager(JobManager):
         print(" from parent: ")
         print("\t",parent, graph.nodes[parent]["data"].logFile )
         
-        graph.nodes[node]["data"].generateFromParent(graph.nodes[parent]["data"])
-        graph.nodes[node]["data"].run()
+        try:
+            graph.nodes[node]["data"].generateFromParent(graph.nodes[parent]["data"])
+            graph.nodes[node]["data"].run()
+        except:
+            print("Cannot generate node from parent:")
+            print(node)
+            
+
         
     def runNodeFromParents(self, graph, node, parents):
         print("generating new node: ")

@@ -156,7 +156,7 @@ class FDynamoNode(JobNode):
         energyRisingLimit = 2
 
         energyDecreasingPoints = 0
-        energyDecreasinfLimit = 3
+        energyDecreasinfLimit = 2
 
         state = "init"
 
@@ -171,7 +171,7 @@ class FDynamoNode(JobNode):
                 else:
                     energyRisingPoints = 0
 
-                if energy > lastEnergy and energyRisingPoints > energyRisingLimit:
+                if energy > lastEnergy and energyRisingPoints >= energyRisingLimit:
                     state = "beforeTS"
                     # print("init state eneded ", coordIndex)
 
@@ -195,7 +195,7 @@ class FDynamoNode(JobNode):
                     state = "init"
 
 
-                if energyDecreasingPoints > energyDecreasinfLimit:
+                if energyDecreasingPoints >= energyDecreasinfLimit:
                     TSEnergy = TSEnergyCandidate
                     TSIndex = TSIndexCandidate
                     state = "init"

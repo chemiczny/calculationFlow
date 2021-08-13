@@ -85,7 +85,7 @@ def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, gra
         if RC < minRC or RC > maxRC:
             continue
 
-        # dirNo = struct.split(".")[-1]
+        structNo = abs(int(struct.split(".")[-1]))
         dirNo = str(i)
         dirname = join( graphDir,  dirNo )
         
@@ -102,7 +102,11 @@ def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, gra
         dftNode.verification = ["SP"]
         dftNode.templateKey = "QMMM_sp_gaussian"
         dftNode.fDynamoPath = "/net/people/plgglanow/fortranPackages/AMBER-g09/AMBER-dynamo/makefile"
-        dftNode.additionalKeywords =  {  "method" : method, "basis" : basis , "multiplicity" : 1 , "definedAtoms" : data["definedAtoms"] , "otherOptions" : "SCF=QC" }
+        if structNo >= 35:
+            dftNode.additionalKeywords =  {  "method" : method, "basis" : basis , "multiplicity" : 1 , "definedAtoms" : data["definedAtoms"] , "otherOptions" : "SCF=(QC,direct,conver=6)" }
+        else:
+            dftNode.additionalKeywords =  {  "method" : method, "basis" : basis , "multiplicity" : 1 , "definedAtoms" : data["definedAtoms"] , "otherOptions" : "SCF=(direct,conver=6)" }
+
         dftNode.coordsIn = "coordsStart.crd"
         copyfile(struct, join( dftNode.path, dftNode.coordsIn ))
         dftNode.coordsOut = "coordsDone.crd"

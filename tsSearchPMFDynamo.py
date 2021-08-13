@@ -270,7 +270,7 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare, onlyRun, runDFT):
     reverseScan = join(startDir, "TS1reverseScan")
     
     newNode = FDynamoNode("scan.f90", reverseScan)
-    newNode.verification = ["scan1D"]
+    newNode.verification = ["SP"]
     newNode.templateKey = "QMMM_scan1D_mopac"
     newNode.readInitialScanCoord = True
     newNode.additionalKeywords = { "scanDir" : "-", "coordScanStart" : "" ,
@@ -313,7 +313,7 @@ def generateTSsearchDynamoPMF(compFile, onlyPrepare, onlyRun, runDFT):
     forwardScan = join(startDir, "TS1forwardScan")
     
     newNode = FDynamoNode("scan.f90", forwardScan)
-    newNode.verification = ["scan1D"]
+    newNode.verification = ["SP"]
     newNode.templateKey = "QMMM_scan1D_mopac"
     newNode.readInitialScanCoord = True
     newNode.additionalKeywords = { "scanDir" : "+", "coordScanStart" : "" ,

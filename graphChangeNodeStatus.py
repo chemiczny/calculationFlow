@@ -37,6 +37,12 @@ if __name__ == "__main__":
         if not graph:
             print("Invalid path!")
             quit()
+
+        currentStatus = graph.nodes[nodePath]["data"].status
+
+        if currentStatus == "running":
+            print("Job is running!")
+            quit()
             
         graph.nodes[nodePath]["data"].status = status
         gm.saveGraphs()
