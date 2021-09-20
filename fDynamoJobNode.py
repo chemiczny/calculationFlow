@@ -132,7 +132,10 @@ class FDynamoNode(JobNode):
         # print("Znaleziono: ", len(atoms), "atomow do wspolrzednej reakcji")
         getCoords( crdFile, atoms)
         
-        return  dist(atoms[0], atoms[1]) - dist(atoms[-1], atoms[-2])
+        if len(atoms) > 2:
+            return  dist(atoms[0], atoms[1]) - dist(atoms[-1], atoms[-2])
+
+        return  dist(atoms[0], atoms[1])
         
     def verifyScan1D(self):
         scanFile = join(self.path, "fort.900" )
@@ -414,6 +417,7 @@ class FDynamoNode(JobNode):
             else:
                 copyfile(join(parent.path, parent.coordsOut), join(self.path, self.coordsIn))
 
+
         #lol
         # if hasattr(self, "copyHessian"):
         #     if self.copyHessian:
@@ -458,7 +462,10 @@ class FDynamoNode(JobNode):
         atoms = atomsFromAtomSelection( self.additionalKeywords["definedAtoms"] )
         getCoords( join(self.path, self.coordsIn), atoms)
         
-        return dist(atoms[0], atoms[1]) - dist(atoms[-2], atoms[-1])
+        if len(atoms) > 2:
+            return dist(atoms[0], atoms[1]) - dist(atoms[-2], atoms[-1])
+
+        return dist(atoms[0], atoms[1])
         
     def generateInput(self):
         templateDir = expanduser("~/jobManagerPro/fDYNAMO")

@@ -439,11 +439,13 @@ class GraphManager(JobManager):
         print("\t",parent, graph.nodes[parent]["data"].logFile )
         
         try:
+        # if True:
             graph.nodes[node]["data"].generateFromParent(graph.nodes[parent]["data"])
             graph.nodes[node]["data"].run()
         except:
             print("Cannot generate node from parent:")
             print(node)
+            # print("Unexpected error:", sys.exc_info()[0])
             
 
         
