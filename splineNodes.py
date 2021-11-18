@@ -2,6 +2,7 @@ from jobNode import JobNode
 from os.path import join, abspath, isfile, expanduser
 from shutil import copyfile
 import math
+from os import remove
 
 class SplineDiffNode(JobNode):
     def __init__(self, inputFile, path):
@@ -35,10 +36,13 @@ class SplineNode(JobNode):
     def __init__(self, inputFile, path, whamLog):
         JobNode.__init__(self,inputFile, path)
         self.whamLog = abspath(whamLog)
+        self.scanOk = True
         
     def generateFromParents(self, graph, parents):
+        self.scanOk = True
         copyfile( self.whamLog, join(self.path, "wham.log" ) )
         
+
         sortedParents = sorted( parents, key = lambda x: graph.nodes[x]["data"].reactionCoordinate  )
         offset = min( [ graph.nodes[p]["data"].diff for p in parents   ] )
         
@@ -48,6 +52,9 @@ class SplineNode(JobNode):
         x = []
         y = []
         lastX = -123124
+
+
+        allowRestart = False
         for p in sortedParents:
             parent = graph.nodes[p]["data"]
             if abs( parent.reactionCoordinate - lastX ) < 0.00001:
@@ -55,40 +62,94 @@ class SplineNode(JobNode):
             lastX = parent.reactionCoordinate
             x.append(parent.reactionCoordinate)
             y.append(parent.diff - offset)
+
             logF.write( "%8.3lf%20.10lf\n"%( parent.reactionCoordinate, parent.diff - offset ) )
             logHL.write( "%8.3lf%20.10lf\n"%( parent.reactionCoordinate, parent.dftValue) )
+
+            if parent.diff - offset > 150 and allowRestart:
+                print("Big difference: ",parent.diff - offset  , " for " )
+
+                dftPath = ""
+
+                for node in graph.predecessors(parent.path):
+                    if "gaussian" in graph.nodes[node]["data"].templateKey:
+                        dftPath = node
+                        break
+
+                print(dftPath)
+                print("Restarting DFT node with option SCF=QC")
+
+                dftNodeData = graph.nodes[dftPath]["data"]
+                dftNodeData.additionalKeywords["otherOptions"] = "SCF=(QC,direct)" 
+                if isfile( join(dftPath, "with_gaussian.f90") ):
+                    remove( join(dftPath, "with_gaussian.f90") )
+
+                dftNodeData.status = "waitingForParent"
+                parent.status = "waitingForParent"
+
+                self.scanOk = False
+
         
         logF.close()
         logHL.close()
 
-        self.smoothProfile(x, y)
-
         templateDir = expanduser("~/jobManagerPro/fDYNAMO")
         splineScript = join(templateDir, "spline.py")
+        fixSplineScript = join(templateDir, "fixSpline.py")
 
         if isfile(splineScript):
             copyfile(splineScript, join(self.path, "spline.py"))
 
-    def smoothProfile(self, x, y):
-        x.reverse()
-        y.reverse()
+        if isfile(fixSplineScript):
+            copyfile(fixSplineScript, join(self.path, "fixSpline.py"))
 
-        logF = open(join(self.path, "diffSmooth.log"), 'w')
+        self.generateEnergyLogs(graph, parents)
 
-        # gaussian smoothing (based on grids:regular)
-        g = 0.4
-        n = len( x )
-        for i in range( n ):
-            w = .0
-            r = .0
-            for j in range( n ):
-                d = math.fabs( ( x[i] - x[j] ) / g )
-                t = math.exp( - d * d )
-                r += y[j] * t
-                w += t
-            logF.write("%20.10lf%20.10lf%20.10lf\n"%( x[i], r / w, y[i] ) )
+    def generateEnergyLogs(self, graph, diffNodes):
+        rc = []
+        semiEmpiricalPotEn = []
+        semiEmpiricalQMEn = []
+        dftPotEn = []
+        dftQMEn = []
+
+
+        sortedDiffNodes = sorted( diffNodes, key = lambda x: graph.nodes[x]["data"].reactionCoordinate  )
+        for node in sortedDiffNodes:
+            pred = list(graph.predecessors(node))
+            diffData = graph.nodes[node]["data"]
+
+            rc.append(diffData.reactionCoordinate)
+            for spNode in pred:
+                spNodeData = graph.nodes[spNode]["data"]
+            
+                if "gaussian" in spNodeData.templateKey:
+                    dftQMEn.append( spNodeData.QMenergy)
+                    dftPotEn.append( spNodeData.PotentialEnergy )
+                    
+                else:
+                    semiEmpiricalQMEn.append( spNodeData.QMenergy)
+                    semiEmpiricalPotEn.append( spNodeData.PotentialEnergy )
+
+
+        self.writeXY2log(  rc, semiEmpiricalPotEn, join(self.path, "semiEmpPotEn.log") )
+        self.writeXY2log(  rc, semiEmpiricalQMEn, join(self.path, "semiEmpQMEn.log") )
+        self.writeXY2log(  rc, dftPotEn, join(self.path, "dftPotEn.log") )
+        self.writeXY2log(  rc, dftQMEn, join(self.path, "dftQMEn.log") )
+
+
+    def writeXY2log(self, x, y, log):
+        logF = open(log, 'w')
+
+        for xEl, yEl in zip(x, y):
+            logF.write( "%8.3lf%20.10lf\n"%( xEl, yEl ) )
 
         logF.close()
+
+    def verifyLog(self):
+        return scanOk
         
     def run(self):
-        self.status = "finished"
+        if self.scanOk:
+            self.status = "finished"
+        else:
+            self.status = "waitingForParent"

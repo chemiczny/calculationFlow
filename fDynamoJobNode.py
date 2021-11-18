@@ -22,6 +22,7 @@ class FDynamoNode(JobNode):
         
         self.templateDict = { "QMMM_opt_mopac" : [ "QMMM_opt.f90", "panadero.f90" ], 
                              "QMMM_opt_mopac_no_hess" : [ "QMMM_opt_noHess.f90" ] ,
+                             "QMMM_opt_mopac_no_hess_restr" : [ "QMMM_opt_noHess_restr.f90" ] ,
                              "QMMM_irc_mopac" : [ "IRC.f90", "mep_project.f90" ] ,
                              "QMMM_scan1D_mopac" : [ "scan1D.f90" ],
                              "QMMM_pmf" : [ "pmf.f90" ] ,

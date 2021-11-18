@@ -77,15 +77,21 @@ def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, gra
     
     
     ################## SP DFT + SP SEMIEMPIRICAL #####################################
-    
-    for i, struct in enumerate(structures):
-        print(struct)
+    RCstructList = []
+    for struct in structures:
+        
         RC = rootNode.measureRC(struct)
-
+        print(struct, RC)
         if RC < minRC or RC > maxRC:
             continue
 
-        structNo = abs(int(struct.split(".")[-1]))
+        RCstructList.append( (RC, struct) )
+
+    RCstructList.sort()
+
+    for i, rcStruct in enumerate(RCstructList):
+        struct = rcStruct[1]
+
         dirNo = str(i)
         dirname = join( graphDir,  dirNo )
         
@@ -105,7 +111,8 @@ def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, gra
         # if structNo >= 35:
             # dftNode.additionalKeywords =  {  "method" : method, "basis" : basis , "multiplicity" : 1 , "definedAtoms" : data["definedAtoms"] , "otherOptions" : "SCF=(QC,direct,conver=6)" }
         # else:
-        dftNode.additionalKeywords =  {  "method" : method, "basis" : basis , "multiplicity" : 1 , "definedAtoms" : data["definedAtoms"] , "otherOptions" : "SCF=(direct,conver=6)" }
+        dftNode.additionalKeywords =  {  "method" : method, "basis" : basis , "multiplicity" : 1 , "definedAtoms" : data["definedAtoms"] , "otherOptions" : "SCF=(direct)" }
+        # dftNode.additionalKeywords =  {  "method" : method, "basis" : basis , "multiplicity" : 1 , "definedAtoms" : data["definedAtoms"] , "otherOptions" : "SCF=direct" }
 
         dftNode.coordsIn = "coordsStart.crd"
         copyfile(struct, join( dftNode.path, dftNode.coordsIn ))
@@ -144,7 +151,7 @@ def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, gra
 
 if __name__ == "__main__":
     if len(sys.argv) < 8:
-        print("Usage: graphSplineDYNAMO wham.log, compileScanScript.sh, method, basis, dft-time, minRC, maxRC, structures")
+        print("Usage: graphSplineDYNAMO wham.log, compileScanScript.sh, method, basis, dft-time, minRC, maxRC, subname, structures")
     else:
         whamLog = sys.argv[1]
         compileScript = sys.argv[2]
@@ -153,13 +160,15 @@ if __name__ == "__main__":
         dftTime = sys.argv[5]
         minRC = float(sys.argv[6])
         maxRC = float(sys.argv[7])
-        structures = sys.argv[8:]
+        subname = sys.argv[8]
+        structures = sys.argv[9:]
         
         currentDir = abspath(dirname(compileScript))
         
         basisDir = basis.replace("(", "_")
         basisDir = basisDir.replace(")", "_")
         basisDir = basisDir.replace(",", "_")
+        basisDir += subname
 
         graphDir = join( getcwd(), "spline-"+method+"-"+basisDir )
         sm = GraphManager()
