@@ -11,7 +11,7 @@ from os import mkdir
 
 class JobManager:
     def __init__(self):
-        self.jobManagerDir = expanduser("~/jobManagerPro/")
+        self.jobManagerDir = expanduser("~/.calculationFlow/")
 
         if not isdir(self.jobManagerDir):
             mkdir(self.jobManagerDir)
