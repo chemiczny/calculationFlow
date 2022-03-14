@@ -1,6 +1,6 @@
-# jobManagerPro
+# calculationFlow
 
-jobManagerPro to zbiór skryptów, które były dla mnie przydatne w czasie prowadzenia obliczeń chemicznych z wykorzystaniem infrastruktury plgrid (aczkolwiek mogą zostać wykorzystane wszędzie, gdzie stosuje się system kolejkowy slurm). Część z nich jest przydatna jeśli chodzi o zarządzanie zakolejkowanymi zadaniami, inne mogą okazać się ciekawymi rozwiązaniami dla osób wykorzystujących oprogramowanie AMBER lub Gaussian i chcą zautowatyzować schematyczne sekwencje obliczeniowe. 
+calculationFlow to zbiór skryptów, które były dla mnie przydatne w czasie prowadzenia obliczeń chemicznych z wykorzystaniem infrastruktury plgrid (aczkolwiek mogą zostać wykorzystane wszędzie, gdzie stosuje się system kolejkowy slurm). Część z nich jest przydatna jeśli chodzi o zarządzanie zakolejkowanymi zadaniami, inne mogą okazać się ciekawymi rozwiązaniami dla osób wykorzystujących oprogramowanie AMBER lub Gaussian i chcą zautowatyzować schematyczne sekwencje obliczeniowe. 
 
 # Instalacja
 
@@ -8,13 +8,13 @@ Jest prymitywna. Najzwyczajniej w świecie sklonuj repozytorium w katalogu domow
 
 ```
 cd
-git clone https://github.com/chemiczny/jobManagerPro
+git clone https://github.com/chemiczny/calculationFlow
 ```
 
 a następnie przejdź do świezo utworzonego katalogu i uruchom w nim skrypt printAliases.py
 
 ```
-cd jobManagerPro
+cd calculationFlow
 python3 printAliases.py
 ```
 
