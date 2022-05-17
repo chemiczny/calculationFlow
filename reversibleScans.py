@@ -78,6 +78,22 @@ def generateTSsearchDynamoPMF(compFile):
     forwardScan = currentDir
 
     for i in range(iterNo):
+        #initial opt i
+        stepOptDir = join(rootDir, "optI_restr_"+str(i))
+
+        newNode = FDynamoNode("optStep.f90", stepOptDir)
+        newNode.verification = ["Opt"]
+        newNode.partition = "plgrid-short"
+        newNode.time = "1:00:00"
+        newNode.templateKey = "QMMM_opt_mopac_no_hess_restr"
+        newNode.readInitialScanCoord = True
+        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "gradientTolerance" : "0.1" }
+        newNode.coordsIn = "coordsIn.crd"
+        newNode.coordsOut = "coordsOut.crd"
+        
+        jobGraph.add_node(stepOptDir, data = newNode)
+        jobGraph.add_edge( forwardScan, stepOptDir)
+
         #opt i
 
         iOptDir = join(rootDir, "optI_"+str(i))
@@ -92,7 +108,7 @@ def generateTSsearchDynamoPMF(compFile):
         newNode.additionalKeywords = { "gradientTolerance" : "0.1"}
         
         jobGraph.add_node(iOptDir, data = newNode)
-        jobGraph.add_edge( forwardScan, iOptDir)
+        jobGraph.add_edge( stepOptDir, iOptDir)
 
 
         #scan back
@@ -111,6 +127,22 @@ def generateTSsearchDynamoPMF(compFile):
         jobGraph.add_node(reverseScan, data = newNode)
         jobGraph.add_edge( iOptDir, reverseScan)
 
+        #initial opt s
+        stepOptDir = join(rootDir, "optS_restr_"+str(i))
+
+        newNode = FDynamoNode("optStep.f90", stepOptDir)
+        newNode.verification = ["Opt"]
+        newNode.partition = "plgrid-short"
+        newNode.time = "1:00:00"
+        newNode.templateKey = "QMMM_opt_mopac_no_hess_restr"
+        newNode.readInitialScanCoord = True
+        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "gradientTolerance" : "0.1" }
+        newNode.coordsIn = "coordsIn.crd"
+        newNode.coordsOut = "coordsOut.crd"
+        
+        jobGraph.add_node(stepOptDir, data = newNode)
+        jobGraph.add_edge( reverseScan, stepOptDir)
+
         #opt s
 
         sOptDir = join(rootDir, "optS_"+str(i))
@@ -125,7 +157,7 @@ def generateTSsearchDynamoPMF(compFile):
         newNode.additionalKeywords = { "gradientTolerance" : "0.1"}
         
         jobGraph.add_node(sOptDir, data = newNode)
-        jobGraph.add_edge( reverseScan, sOptDir)
+        jobGraph.add_edge( stepOptDir, sOptDir)
 
         if i == iterNo -1:
             break

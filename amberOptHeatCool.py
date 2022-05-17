@@ -8,7 +8,7 @@ Created on Fri Jun 19 19:38:35 2020
 import sys
 from graphManager import GraphManager
 from os import getcwd
-from os.path import join
+from os.path import join, basename
 import networkx as nx
 from amberNode import AmberNode
 from cppTrajNode import CppTrajNode
@@ -77,42 +77,15 @@ def generateGraph(topologyFile, coordinates):
     jobGraph.add_node(heatingDir, data = heatingNode )
     jobGraph.add_edge(currentDir, heatingDir)
     
-    md1Dir = join(currentDir, "MD")
-    md1Node = AmberNode("amber.in", md1Dir, md1Dir, topologyFile , "md_rst_0.nc")
-    md1Node.runType = "standardMD"
-    md1Node.nsOfSimulation = 60
-    md1Node.time = "36:00:00"
-    md1Node.processors = 1
-    md1Node.partition = "plgrid-gpu\n#SBATCH --gres=gpu:1\n#SBATCH -A plgksdhphdgpu2"
-    jobGraph.add_node(md1Dir, data = md1Node)
-    jobGraph.add_edge(heatingDir, md1Dir)
-    
-    # md2Dir = join(md1Dir, "MD_part2")
-    # md2Node = AmberNode("amber.in", md2Dir, md1Dir, topologyFile)
-    # md2Node.runType = "standardMD"
-    # md2Node.time = "30:00:00"
-    # md2Node.processors = 1
-    # md2Node.partition = "plgrid-gpu\n#SBATCH --gres=gpu:1\n#SBATCH -A plgksdhphdgpu"
-    # md2Node.nsOfSimulation = 20
-    # jobGraph.add_node(md2Dir, data = md2Node)
-    # jobGraph.add_edge(md1Dir, md2Dir)
-    
-    # md3Dir = join(md1Dir, "MD_part3")
-    # md3Node = AmberNode("amber.in", md3Dir, md1Dir, topologyFile)
-    # md3Node.runType = "standardMD"
-    # md3Node.time = "30:00:00"
-    # md3Node.processors = 1
-    # md3Node.partition = "plgrid-gpu\n#SBATCH --gres=gpu:1\n#SBATCH -A plgksdhphdgpu"
-    # md3Node.nsOfSimulation = 20
-    # jobGraph.add_node(md3Dir, data = md3Node)
-    # jobGraph.add_edge(md2Dir, md3Dir)
-    
-    rmsdDir = join(currentDir, "rmsd")
-    rmsdNode = CppTrajNode("rmsd.slurm", rmsdDir, topologyFile, md1Dir)
-    rmsdNode.time = "1:00:00"
-    rmsdNode.partition = "plgrid-short"
-    jobGraph.add_node(rmsdDir, data = rmsdNode)
-    jobGraph.add_edge(md1Dir, rmsdDir)
+
+    coolDirName = join(currentDir, "cool")
+    coolNode = AmberNode("amber.slurm", coolDirName, coolDirName, basename(topologyFile), "md_rst_0.nc")
+    coolNode.runType = "standardCooling"
+    coolNode.time = "1:00:00"
+    coolNode.partition = "plgrid-short"
+    coolNode.processors = 8
+    jobGraph.add_node( coolDirName, data = coolNode )
+    jobGraph.add_edge(heatingDir, coolDirName)
     
     return jobGraph
 

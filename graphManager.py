@@ -19,6 +19,7 @@ from os import makedirs
 import networkx as nx
 from collections import defaultdict
 from jobManager import JobManager
+import traceback
 
 class GraphManager(JobManager):
     def __init__(self):
@@ -445,6 +446,7 @@ class GraphManager(JobManager):
         except:
             print("Cannot generate node from parent:")
             print(node)
+            traceback.print_exc()
             # print("Unexpected error:", sys.exc_info()[0])
             
 

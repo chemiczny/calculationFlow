@@ -3,6 +3,7 @@ from os.path import join, abspath, isfile, expanduser
 from shutil import copyfile
 import math
 from os import remove
+import sys
 
 class SplineDiffNode(JobNode):
     def __init__(self, inputFile, path):
@@ -55,6 +56,7 @@ class SplineNode(JobNode):
 
 
         allowRestart = False
+        
         for p in sortedParents:
             parent = graph.nodes[p]["data"]
             if abs( parent.reactionCoordinate - lastX ) < 0.00001:
@@ -66,7 +68,7 @@ class SplineNode(JobNode):
             logF.write( "%8.3lf%20.10lf\n"%( parent.reactionCoordinate, parent.diff - offset ) )
             logHL.write( "%8.3lf%20.10lf\n"%( parent.reactionCoordinate, parent.dftValue) )
 
-            if parent.diff - offset > 150 and allowRestart:
+            if parent.diff - offset > 230 and allowRestart:
                 print("Big difference: ",parent.diff - offset  , " for " )
 
                 dftPath = ""
@@ -93,7 +95,7 @@ class SplineNode(JobNode):
         logF.close()
         logHL.close()
 
-        templateDir = expanduser("~/jobManagerPro/fDYNAMO")
+        templateDir = join(sys.path[0],"fDYNAMO")
         splineScript = join(templateDir, "spline.py")
         fixSplineScript = join(templateDir, "fixSpline.py")
 

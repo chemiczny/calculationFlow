@@ -16,7 +16,7 @@ class WhamNode(JobNode):
         self.time = "00:20:00"
         
     def generateFromParent(self, parentData):
-        templateDir = expanduser("~/jobManagerPro/fDYNAMO")
+        templateDir = join(sys.path[0],"fDYNAMO")
         template = join( templateDir, "wham.py" )
         
         copyfile(template, join(self.path, "wham.py"))

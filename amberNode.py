@@ -10,6 +10,7 @@ from jobNode import JobNode
 from os.path import join, expanduser, basename, isfile
 from glob import glob
 from shutil import copyfile
+import sys
 
 class AmberNode(JobNode):
     def __init__(self, inputFile, path, mdDirectory, topologyFile, coordinatesIn= None):
@@ -141,7 +142,7 @@ class AmberNode(JobNode):
             
         slurmFile.write("module add plgrid/apps/amber/18\n")
             
-        templateDir = expanduser("~/jobManagerPro/amber")
+        templateDir = join(sys.path[0], "amber")
         template = join( templateDir, self.templateDict[self.runType] )
         
         if self.runType == "standardOptimization":

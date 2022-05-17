@@ -10,7 +10,7 @@ from os import getcwd
 from os.path import join
 
 cwd = getcwd()
-file2alias = { "sbatchPy.py" : "sbatchPy", "squeuePy.py" : "squeuePy", "sremovePy.py" : "sremove" }
+file2alias = { "sbatchPy.py" : "sbatchPy", "squeuePy.py" : "squeuePy", "sremovePy.py" : "sremovePy" }
 
 for script in file2alias:
     path = join(cwd, script)

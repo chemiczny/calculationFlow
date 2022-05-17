@@ -9,6 +9,7 @@ from os import getcwd, chdir
 from sbatchPy import SbatchManager
 from os.path import join, isfile, expanduser
 import json
+import sys
 
 class JobNode:
     def __init__(self, inputFile, path):
@@ -63,7 +64,7 @@ class JobNode:
         self.status = "running"
         
     def readSlurmConfig(self):
-        configPath = expanduser("~/jobManagerPro/config.json")
+        configPath = join(sys.path[0],"config.json")
         slurmConfig = {}
         if not isfile(configPath):
             return slurmConfig

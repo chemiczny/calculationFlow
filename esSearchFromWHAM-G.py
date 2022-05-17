@@ -169,8 +169,7 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     newNode.verification = ["Opt"]
     newNode.partition = "plgrid-short"
     newNode.time = "1:00:00"
-    newNode.templateKey = "QMMM_opt_mopac_no_hess_restr"
-    newNode.readInitialScanCoord = True
+    newNode.templateKey = "QMMM_opt_mopac_no_hess"
     newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : baseData["definedAtoms"] , "constraints" : baseData["constraints"], "gradientTolerance" : "0.3"}
     newNode.fDynamoPath = baseData["fDynamoPath"]
     newNode.charge = baseData["charge"]
@@ -190,34 +189,21 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     jobGraph.add_node(stepOptDir, data = newNode)
     jobGraph.add_edge( rootDir, stepOptDir)
 
-    #ts search
-    tsSemiEmp = join(currentDir, "ts_search_am1")
-    newNode = FDynamoNode("tsSearch.f90", tsSemiEmp)
-    newNode.verification = ["Opt" , "Freq"]
-    newNode.noOfExcpectedImaginaryFrequetions = 1
-    newNode.templateKey = "QMMM_opt_mopac"
-    newNode.additionalKeywords = { "ts_search" : "true"}
-    newNode.coordsIn = "coordsIn.crd" 
-
-    gaussianTime = "72:00:00"
-    
-    jobGraph.add_node(tsSemiEmp, data = newNode)
-    jobGraph.add_edge(stepOptDir, tsSemiEmp)
-    
-    am1Dir = tsSemiEmp
 
     ########################################################
-    currentDir = join(currentDir, "ts_gaussian")
+    currentDir = join(currentDir, "opt_gaussian")
     if not isdir(currentDir):
         makedirs(currentDir)
     
-    newNode = FDynamoNode("tsSearch", currentDir)
+    gaussianTime = "72:00:00"
+
+    newNode = FDynamoNode("opt", currentDir)
         
     newNode.verification = ["Opt" , "Freq"]
-    newNode.noOfExcpectedImaginaryFrequetions = 1
+    newNode.noOfExcpectedImaginaryFrequetions = 0
     newNode.templateKey = "QMMM_opt_gaussian"
     newNode.fDynamoPath = "/net/people/plgglanow/fortranPackages/AMBER-g09/AMBER-dynamo/makefile"
-    newNode.additionalKeywords =  { "ts_search" : "true", "definedAtoms" : baseData["definedAtoms"] , "method" : method, "basis" : basis , "multiplicity" : 1, "otherOptions" : "" }
+    newNode.additionalKeywords =  { "ts_search" : "false", "definedAtoms" : baseData["definedAtoms"] , "method" : method, "basis" : basis , "multiplicity" : 1, "otherOptions" : "" }
     newNode.coordsIn = "coordsStart.crd"
     newNode.coordsOut = "coordsDone.crd"
     newNode.flexiblePart = basename(gaussianFelxSele)
@@ -229,156 +215,8 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     
 
     jobGraph.add_node(currentDir, data = newNode)
-    jobGraph.add_edge(am1Dir, currentDir)
-    
-    ########################################################
+    jobGraph.add_edge(stepOptDir, currentDir)
 
-    newDir = join(am1Dir, "irc_reverse")
-    newNode = FDynamoNode("scan.f90", newDir)
-    newNode.verification = ["SP"]
-    newNode.templateKey = "QMMM_scan1D_mopac"
-    newNode.readInitialScanCoord = True
-    newNode.additionalKeywords = { "scanDir" : "-", "coordScanStart" : "" ,"definedAtoms" : baseData["definedAtoms"] , "gradientTolerance" : "0.2",
-         "iterNo" : str(15),  "constraints" : baseData["constraints"]}
-    newNode.coordsIn = "coordsStart.crd"
-    newNode.coordsOut = "seed.-15"
-    
-
-    jobGraph.add_node(newDir, data = newNode)
-    jobGraph.add_edge(am1Dir, newDir)
-
-    ########################################################
-    preOptDir = join(newDir, "preOpt")
-    
-    newNode = FDynamoNode("optStep.f90", preOptDir)
-    newNode.verification = ["Opt"]
-    newNode.partition = "plgrid-short"
-    newNode.time = "1:00:00"
-    newNode.templateKey = "QMMM_opt_mopac_no_hess"
-    newNode.coordsIn = "coordsIn.crd"
-    newNode.coordsOut = "coordsOut.crd"
-    newNode.additionalKeywords = { "gradientTolerance" : "0.1"}
-    
-
-    jobGraph.add_node(preOptDir, data = newNode)
-    jobGraph.add_edge( newDir, preOptDir)
-    
-    ########################################################
-    optDir = join(newDir, "opt")
-    
-    newNode = FDynamoNode("opt.f90", optDir)
-    newNode.verification = ["Opt", "Freq"]
-    newNode.noOfExcpectedImaginaryFrequetions = 0
-    newNode.templateKey = "QMMM_opt_mopac"
-    newNode.additionalKeywords = { "ts_search" : "false", "definedAtoms" : baseData["definedAtoms"]  }
-    newNode.coordsIn = "coordsStart.crd"
-    newNode.coordsOut = "coordsDone"+str(index)+".crd"
-    newNode.measureRCinOutput = True
-    
-
-    jobGraph.add_node(optDir, data = newNode)
-    jobGraph.add_edge( preOptDir, optDir)
-    
-    ########################################################
-
-    optDirGaussian = join(newDir, "optGaussian")
-    
-    if not isdir(optDirGaussian):
-        makedirs(optDirGaussian)
-
-    newNode = FDynamoNode("opt.f90", optDirGaussian)
-    newNode.verification = ["Opt", "Freq"]
-    newNode.noOfExcpectedImaginaryFrequetions = 0
-    newNode.templateKey = "QMMM_opt_gaussian"
-    newNode.fDynamoPath = "/net/people/plgglanow/fortranPackages/AMBER-g09/AMBER-dynamo/makefile"
-    newNode.additionalKeywords = { "ts_search" : "false" , "method" : method,"definedAtoms" : baseData["definedAtoms"] , "basis" : basis , "multiplicity" : 1, "otherOptions" : "" }
-    newNode.coordsIn = "coordsStart.crd"
-    newNode.coordsOut = "coordsDone"+str(index)+".crd"
-    newNode.flexiblePart = basename(gaussianFelxSele)
-    copyfile( gaussianFelxSele, join(optDirGaussian, newNode.flexiblePart) )
-    newNode.measureRCinOutput = True
-    newNode.processors = 24
-    newNode.moduleAddLines = "module add plgrid/apps/gaussian/g16.B.01"
-    newNode.partition = "plgrid"
-    newNode.time = gaussianTime
-
-    jobGraph.add_node(optDirGaussian, data = newNode)
-    jobGraph.add_edge( optDir, optDirGaussian)
-
-    ########################################################
-
-    newDir = join(am1Dir, "irc_forward")
-    newNode = FDynamoNode("scan.f90", newDir)
-    newNode.verification = ["SP"]
-    newNode.templateKey = "QMMM_scan1D_mopac"
-    newNode.readInitialScanCoord = True
-    newNode.additionalKeywords = { "scanDir" : "+", "coordScanStart" : "" , "gradientTolerance" : "0.2", "definedAtoms" : baseData["definedAtoms"] ,
-         "iterNo" : str(15),  "constraints" : baseData["constraints"]}
-    newNode.coordsIn = "coordsStart.crd"
-    newNode.coordsOut = "seed.+15"
-    
-    jobGraph.add_node(newDir, data = newNode)
-    jobGraph.add_edge(am1Dir, newDir)
-    
-    ########################################################
-
-    preOptDir = join(newDir, "preOpt")
-    
-    newNode = FDynamoNode("optStep.f90", preOptDir)
-    newNode.verification = ["Opt"]
-    newNode.partition = "plgrid-short"
-    newNode.time = "1:00:00"
-    newNode.templateKey = "QMMM_opt_mopac_no_hess"
-    newNode.coordsIn = "coordsIn.crd"
-    newNode.coordsOut = "coordsOut.crd"
-    newNode.additionalKeywords = { "gradientTolerance" : "0.1"}
-    
-
-    jobGraph.add_node(preOptDir, data = newNode)
-    jobGraph.add_edge( newDir, preOptDir)
-    
-    ########################################################
-
-    optDir = join(newDir, "opt")
-    
-    newNode = FDynamoNode("opt.f90", optDir)
-    newNode.verification = ["Opt", "Freq"]
-    newNode.noOfExcpectedImaginaryFrequetions = 0
-    newNode.templateKey = "QMMM_opt_mopac"
-    newNode.additionalKeywords = { "ts_search" : "false", "definedAtoms" : baseData["definedAtoms"]  }
-    newNode.coordsIn = "coordsStart.crd"
-    newNode.coordsOut = "coordsDone"+str(index)+".crd"
-    newNode.measureRCinOutput = True
-    
-    jobGraph.add_node(optDir, data = newNode)
-    jobGraph.add_edge( preOptDir, optDir)
-    
-    ########################################################
-    
-    optDirGaussian = join(optDir, "optGaussian")
-
-    if not isdir(optDirGaussian):
-        makedirs(optDirGaussian)
-    
-    newNode = FDynamoNode("opt.f90", optDirGaussian)
-    newNode.verification = ["Opt", "Freq"]
-    newNode.noOfExcpectedImaginaryFrequetions = 0
-    newNode.templateKey = "QMMM_opt_gaussian"
-    newNode.fDynamoPath = "/net/people/plgglanow/fortranPackages/AMBER-g09/AMBER-dynamo/makefile"
-    newNode.additionalKeywords = { "ts_search" : "false" , "method" : method, "basis" : basis , "multiplicity" : 1,
-     "otherOptions" : "", "definedAtoms" : baseData["definedAtoms"] }
-    newNode.coordsIn = "coordsStart.crd"
-    newNode.coordsOut = "coordsDone"+str(index)+".crd"
-    newNode.measureRCinOutput = True
-    newNode.processors = 24
-    newNode.flexiblePart = basename(gaussianFelxSele)
-    copyfile( gaussianFelxSele, join(optDirGaussian, newNode.flexiblePart) )
-    newNode.moduleAddLines = "module add plgrid/apps/gaussian/g16.B.01"
-    newNode.partition = "plgrid"
-    newNode.time = gaussianTime
-
-    jobGraph.add_node(optDirGaussian, data = newNode)
-    jobGraph.add_edge( optDir, optDirGaussian)
     
 
 if __name__ == "__main__":
@@ -406,7 +244,7 @@ if __name__ == "__main__":
 
         currentDir = abspath(dirname(compileScript))
 
-        graphDir = join( getcwd(), "multiTSsearch-"+method + additionalName )
+        graphDir = join( getcwd(), "multiOpt-"+method + additionalName )
 
         sm = GraphManager()
         graph = sm.isGraphHere(graphDir)

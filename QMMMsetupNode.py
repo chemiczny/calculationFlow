@@ -26,8 +26,8 @@ class QMMMsetupNode(JobNode):
         self.writeSlurmScript("run.slurm")
     
     def generateSrcipts(self):
-        tclTemplateDir = expanduser("~/jobManagerPro/tcl")
-        ecmbTemplateDir = expanduser("~/jobManagerPro/ecmb")
+        tclTemplateDir = join(sys.path[0],"tcl")
+        ecmbTemplateDir = join(sys.path[0],"ecmb")
 
         copyfile( join( tclTemplateDir, "saveCRD.tcl" ), join(self.path, "saveCRD.tcl") )
         copyfile( join(ecmbTemplateDir, "ecmb.py"), join(self.path, "ecmb.py") )

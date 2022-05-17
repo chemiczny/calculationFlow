@@ -11,6 +11,7 @@ from os.path import join, isfile, expanduser
 from shutil import copyfile
 from os import getcwd, chdir, system
 from crdParser import getCoords, dist, atomsFromAtomSelection
+import sys
 
 class FDynamoNode(JobNode):
     def __init__(self, inputFile, path):
@@ -469,7 +470,7 @@ class FDynamoNode(JobNode):
         return dist(atoms[0], atoms[1])
         
     def generateInput(self):
-        templateDir = expanduser("~/jobManagerPro/fDYNAMO")
+        templateDir = join(sys.path[0], "fDYNAMO")
         files2process = self.templateDict[ self.templateKey ]
         
         self.inputFile = files2process[0]
