@@ -1,0 +1,2 @@
+n=`ls calc.log* | wc -l`
+mv calc.log calcLast.log
