@@ -1,0 +1,8 @@
+{
+	"firstLine"	: "#!/bin/env bash",
+	"gaussianCommand" : "g16",
+	"gaussianModule" : "plgrid/apps/gaussian/g16.A.03",
+	"additionalLines" : "",
+	"timeRestrictions" : "True",
+	"fDYNAMOcompilerModule" : "plgrid/tools/intel/19.0.3"
+}
