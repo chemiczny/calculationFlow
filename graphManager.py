@@ -320,8 +320,9 @@ class GraphManager(JobManager):
                         if not logOk:
                             print("Error in logfile ", node)
                             jobFailed = True
-                    except:
+                    except Exception as e:
                         print("Cannot verify log file: "+node)
+                        print(e)
                         jobFailed = True
                         
                     if jobFailed:

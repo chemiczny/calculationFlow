@@ -9,7 +9,7 @@ Created on Wed Nov 20 15:17:36 2019
 from jobNode import JobNode
 from os.path import join, isfile, expanduser
 from shutil import copyfile
-from os import getcwd, chdir, system
+from os import getcwd, chdir, system, rename
 from crdParser import getCoords, dist, atomsFromAtomSelection
 import sys
 
@@ -113,6 +113,8 @@ class FDynamoNode(JobNode):
             res = res and self.verifyFreq()
         if "scan1D" in self.verification:
             res = res and self.verifyScan1D()
+        if "PMF_restart" in self.verification:
+            res = res and self.verifyPMFrestart()
 
         if hasattr(self, "measureRCinOutput"):
             if self.measureRCinOutput:
@@ -126,6 +128,24 @@ class FDynamoNode(JobNode):
 
         return res
     
+    def verifyPMFrestart(self):
+        rename(join(self.path, "pmf.dat"), join(self.path, "pmf_fresh_part.dat"))
+
+        with open(join(self.path, "pmf.dat"), 'w') as final_pmf:
+            
+            with open(join(self.path, "pmf_timeout.dat")) as pmf_part1:
+                line = pmf_part1.readline()
+                while line:
+                    final_pmf.write(line)
+                    line = pmf_part1.readline()
+
+            with open(join(self.path, "pmf_fresh_part.dat")) as pmf_part1:
+                line = pmf_part1.readline()
+                line = pmf_part1.readline()
+                while line:
+                    final_pmf.write(line)
+                    line = pmf_part1.readline()
+
     def measureRC(self, crdFile):
         if not "definedAtoms" in self.additionalKeywords:
             print("nie zdefiniowano atomow do RC!!!")

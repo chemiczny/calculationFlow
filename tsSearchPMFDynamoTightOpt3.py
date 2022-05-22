@@ -186,7 +186,7 @@ def generateTSsearchDynamoPMF(compFile):
         newNode.time = "72:00:00"
         newNode.templateKey = "QMMM_pmf"
         newNode.readInitialScanCoord = True
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints}
+        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 40000}
         newNode.anotherCoordsSource = "seed.-"+str(i)
         newNode.coordsIn = "seed.crd"
         
@@ -219,7 +219,7 @@ def generateTSsearchDynamoPMF(compFile):
         newNode.time = "72:00:00"
         newNode.templateKey = "QMMM_pmf"
         newNode.readInitialScanCoord = True
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints}
+        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 40000}
         newNode.anotherCoordsSource = "seed.-"+str(i)
         newNode.coordsIn = "seed.crd"
         
@@ -251,7 +251,7 @@ def generateTSsearchDynamoPMF(compFile):
         newNode.time = "72:00:00"
         newNode.templateKey = "QMMM_pmf"
         newNode.readInitialScanCoord = True
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints}
+        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 40000}
         newNode.anotherCoordsSource = "seed.-"+str(i)
         newNode.coordsIn = "seed.crd"
         
@@ -284,7 +284,7 @@ def generateTSsearchDynamoPMF(compFile):
         newNode.time = "72:00:00"
         newNode.templateKey = "QMMM_pmf"
         newNode.readInitialScanCoord = True
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints}
+        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 40000}
         newNode.anotherCoordsSource = "seed.+"+str(i)
         newNode.coordsIn = "seed.crd"
         
@@ -317,7 +317,7 @@ def generateTSsearchDynamoPMF(compFile):
         newNode.time = "72:00:00"
         newNode.templateKey = "QMMM_pmf"
         newNode.readInitialScanCoord = True
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints}
+        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 40000}
         newNode.anotherCoordsSource = "seed.+"+str(i)
         newNode.coordsIn = "seed.crd"
         
@@ -349,7 +349,7 @@ def generateTSsearchDynamoPMF(compFile):
         newNode.time = "72:00:00"
         newNode.templateKey = "QMMM_pmf"
         newNode.readInitialScanCoord = True
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints}
+        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 40000}
         newNode.anotherCoordsSource = "seed.+"+str(i)
         newNode.coordsIn = "seed.crd"
         

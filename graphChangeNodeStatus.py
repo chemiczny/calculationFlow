@@ -26,7 +26,7 @@ if __name__ == "__main__":
         nodePath = sys.argv[1]
         status = sys.argv[2]
 
-        if not status in [ "waitingForParent" , "running", "finished", "examined" ]:
+        if not status in [ "waitingForParent" , "running", "finished", "examined", "failed" ]:
             print("Invalid status!")
             quit()
 
@@ -48,5 +48,5 @@ if __name__ == "__main__":
         gm.saveGraphs()
     else:
         print("Usage: graphChangeNodeStatus nodePath status [default: waitingForParent]")
-        print("Possible status: waitingForParent, running, finished, examined")
+        print("Possible status: waitingForParent, running, finished, examined, failed")
         

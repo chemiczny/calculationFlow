@@ -65,7 +65,7 @@ program fistro
 		print_frequency = 100, &
 		coordinate_file = "pmf.trj", &
 		save_frequency = 100, &
-		steps           = 40000 )
+		steps           = {pmfSteps} )
 	call constraint_writing_start
 	call langevin_verlet_dynamics( 303._dp, 100._dp )
 	call constraint_writing_stop
