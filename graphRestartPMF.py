@@ -88,7 +88,8 @@ if __name__ == "__main__":
             steps_executed = count_lines(pmf_result_file) - 1
             steps2calculate = 40000-steps_executed
 
-            restart_PMF_node(graph, node, steps2calculate)
+            if steps2calculate > 0:
+                restart_PMF_node(graph, node, steps2calculate)
 
 
 
