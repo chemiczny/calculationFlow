@@ -7,8 +7,8 @@ Created on Fri Dec  6 13:07:14 2019
 """
 
 import networkx as nx
-from os import getcwd, makedirs
-from os.path import join, abspath, dirname, basename, isdir
+from os import getcwd, makedirs, environ
+from os.path import join, abspath, dirname, basename, isdir, isfile
 from shutil import copyfile
 from fDynamoJobNode import FDynamoNode
 from parsers import parseFDynamoCompileScript
@@ -107,7 +107,14 @@ def buildGraph(whamLog, compileScript, method, basis, structures, sourceDir, gra
         dftNode = FDynamoNode("DFT-SP-"+dirNo, dftDir)
         dftNode.verification = ["SP"]
         dftNode.templateKey = "QMMM_sp_gaussian"
-        dftNode.fDynamoPath = "/net/people/plgglanow/fortranPackages/AMBER-g09/AMBER-dynamo/makefile"
+
+        fDYNAMO_gaussian_path = environ.get("DYNAMO_GAUSSIAN", "")
+        if not isfile(fDYNAMO_gaussian_path):
+            print("fDYNAMO Gaussian file not found!")
+            quit()
+
+        dftNode.fDynamoPath = fDYNAMO_gaussian_path
+        # dftNode.fDynamoPath = "/net/people/plgglanow/fortranPackages/AMBER-g09/AMBER-dynamo/makefile"
         # if structNo >= 35:
             # dftNode.additionalKeywords =  {  "method" : method, "basis" : basis , "multiplicity" : 1 , "definedAtoms" : data["definedAtoms"] , "otherOptions" : "SCF=(QC,direct,conver=6)" }
         # else:

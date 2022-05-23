@@ -97,13 +97,13 @@ class SplineNode(JobNode):
 
         templateDir = join(sys.path[0],"fDYNAMO")
         splineScript = join(templateDir, "spline.py")
-        fixSplineScript = join(templateDir, "fixSpline.py")
+        # fixSplineScript = join(templateDir, "fixSpline.py")
 
         if isfile(splineScript):
             copyfile(splineScript, join(self.path, "spline.py"))
 
-        if isfile(fixSplineScript):
-            copyfile(fixSplineScript, join(self.path, "fixSpline.py"))
+        # if isfile(fixSplineScript):
+        #     copyfile(fixSplineScript, join(self.path, "fixSpline.py"))
 
         self.generateEnergyLogs(graph, parents)
 
