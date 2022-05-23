@@ -146,6 +146,8 @@ class FDynamoNode(JobNode):
                     final_pmf.write(line)
                     line = pmf_part1.readline()
 
+        return True
+
     def measureRC(self, crdFile):
         if not "definedAtoms" in self.additionalKeywords:
             print("nie zdefiniowano atomow do RC!!!")
