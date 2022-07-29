@@ -52,13 +52,8 @@ program fistro
 	call gradient
 
 	call random_initialize( i + my_random() )
-	call velocity_assign( 303._dp, .false. )
-
-	call dynamics_options( &
-		time_step       = 0.0005_dp, &
-		print_frequency = 100, &
-		steps           = 10000 )
-	call langevin_verlet_dynamics( 303._dp, 100._dp )
+	!call velocity_assign( 303._dp, .false. )
+	call velocity_read("velocities.in")
 
 	call dynamics_options( &
 		time_step       = 0.0005_dp, &

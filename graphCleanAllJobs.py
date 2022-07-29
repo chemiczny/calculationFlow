@@ -7,7 +7,7 @@ Created on Fri Dec 13 11:15:22 2019
 """
 
 from graphManager import GraphManager
-from sremove import SremoveManager
+from sremovePy import SremoveManager
 import sys
 
 if __name__ == "__main__":

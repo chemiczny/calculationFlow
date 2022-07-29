@@ -8,7 +8,7 @@ Created on Wed Nov 20 15:17:36 2019
 
 from jobNode import JobNode
 from os.path import join, isfile, expanduser
-from shutil import copyfile
+from shutil import copyfile, move
 from os import getcwd, chdir, system, rename
 from crdParser import getCoords, dist, atomsFromAtomSelection
 import sys
@@ -27,6 +27,7 @@ class FDynamoNode(JobNode):
                              "QMMM_irc_mopac" : [ "IRC.f90", "mep_project.f90" ] ,
                              "QMMM_scan1D_mopac" : [ "scan1D.f90" ],
                              "QMMM_pmf" : [ "pmf.f90" ] ,
+                             "QMMM_pmf_restart" : [ "pmf_restart.f90" ],
                              "QMMM_sp" : [ "SP.f90" ], 
                              "QMMM_opt_gaussian" : [ "QMMM_opt_Gauss.f90", "panadero.f90", "keep_log", "with_gaussian.f90" ],
                              "QMMM_irc_gaussian" : [ "IRC_Gauss.f90" , "mep_project.f90", "keep_log", "with_gaussian.f90" ],
@@ -56,12 +57,15 @@ class FDynamoNode(JobNode):
         
         self.anotherCoordsSource = ""
         self.copyHessian = False
+        self.copyVelocities = False
         self.readInitialScanCoord = False
+        self.movePMFresults = False
         
         self.measureRCinOutput = False
         
         self.QMenergy = None
         self.PotentialEnergy = None
+        self.parent_initial_rc = None
         
         self.moduleAddLines = ""
         
@@ -129,11 +133,14 @@ class FDynamoNode(JobNode):
         return res
     
     def verifyPMFrestart(self):
+        if not isfile(join(self.path, "pmf_old.dat")):
+            return True 
+
         rename(join(self.path, "pmf.dat"), join(self.path, "pmf_fresh_part.dat"))
 
         with open(join(self.path, "pmf.dat"), 'w') as final_pmf:
             
-            with open(join(self.path, "pmf_timeout.dat")) as pmf_part1:
+            with open(join(self.path, "pmf_old.dat")) as pmf_part1:
                 line = pmf_part1.readline()
                 while line:
                     final_pmf.write(line)
@@ -266,6 +273,9 @@ class FDynamoNode(JobNode):
                 # print("\tNormal termination of fDYNAMO")
                 result = True
                 # break
+
+            if "Data written to" in line:
+                result = True
 
             if "Error in MOPAC_SCF:Excessive number of SCF iterations." in line:
             	print("\tfDYNAMO terminated abnormally: MOPAC error")
@@ -441,7 +451,19 @@ class FDynamoNode(JobNode):
             else:
                 copyfile(join(parent.path, parent.coordsOut), join(self.path, self.coordsIn))
 
+        if self.copyVelocities:
+            velocities_path = join(parent.path, "velocities.out")
+            if isfile(velocities_path):
+                copyfile(velocities_path, join(self.path, "velocities.in"))
 
+        if self.movePMFresults:
+            pmf_path = join(parent.path, "pmf.dat")
+            if isfile(pmf_path):
+                move(pmf_path, join(self.path, "pmf_old.dat"))
+
+
+        if "coordScanStart" in parent.additionalKeywords:
+            self.parent_initial_rc = parent.additionalKeywords["coordScanStart"]
         #lol
         # if hasattr(self, "copyHessian"):
         #     if self.copyHessian:
@@ -499,6 +521,8 @@ class FDynamoNode(JobNode):
         
         if "coordScanStart" in self.additionalKeywords and self.readInitialScanCoord:
             self.additionalKeywords["coordScanStart"] = self.readInitialCoord()
+        elif "coordScanStart" in self.additionalKeywords:
+            self.additionalKeywords["coordScanStart"] = self.parent_initial_rc
         
         formatDict = { "forcefield" : self.forceField, "sequence" : self.sequence,
                       "coordsIn" : self.coordsIn, "coordsOut" : self.coordsOut ,
