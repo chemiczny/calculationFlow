@@ -136,6 +136,10 @@ class FDynamoNode(JobNode):
         if not isfile(join(self.path, "pmf_old.dat")):
             return True 
 
+        # not execute this code twice
+        if isfile(join(self.path, "pmf_fresh_part.dat")):
+            return True 
+
         rename(join(self.path, "pmf.dat"), join(self.path, "pmf_fresh_part.dat"))
 
         with open(join(self.path, "pmf.dat"), 'w') as final_pmf:
