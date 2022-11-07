@@ -60,7 +60,7 @@ def findNstrClosest2rc( rc, n , selectedAtoms ):
     dcdNo = len(dcdFiles)
     for i, dcd in enumerate(dcdFiles, 1):
         dcdDirname = dirname(dcd)
-        crdFiles = list(glob( join( dcdDirname, "pmfDone.crd" ) ))
+        crdFiles = list(glob( join( dcdDirname, "seed.crd" ) ))
         if not crdFiles:
             continue 
             
@@ -91,8 +91,13 @@ def findNstrClose2rcDCD( rc, n, crdFile, dcdFile, selectedAtoms ):
     while mol.dcd_next():
         dist1 = ecmb.Dist( mol.crd[a1] , mol.crd[a2] )
         dist2 = ecmb.Dist( mol.crd[a2] , mol.crd[a3] )
+
+        diff = abs( dist1 - dist2 - rc )
         
-        strList.append( FrameData(crdFile, dcdFile, index, abs( dist1 - dist2 - rc )) )
+        strList.append( FrameData(crdFile, dcdFile, index, diff) )
+
+        if index > n and diff > 0.5:
+            break
         
         index += 1
         
@@ -167,8 +172,8 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
 
     newNode = FDynamoNode("optStep.f90", stepOptDir)
     newNode.verification = ["Opt"]
-    newNode.partition = "plgrid-short"
-    newNode.time = "1:00:00"
+    newNode.partition = "plgrid"
+    newNode.time = "3:00:00"
     newNode.templateKey = "QMMM_opt_mopac_no_hess_restr"
     newNode.readInitialScanCoord = True
     newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : baseData["definedAtoms"] , "constraints" : baseData["constraints"], "gradientTolerance" : "0.3"}
@@ -190,21 +195,21 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     jobGraph.add_node(stepOptDir, data = newNode)
     jobGraph.add_edge( rootDir, stepOptDir)
 
-    #ts search
-    tsSemiEmp = join(currentDir, "ts_search_am1")
-    newNode = FDynamoNode("tsSearch.f90", tsSemiEmp)
-    newNode.verification = ["Opt" , "Freq"]
-    newNode.noOfExcpectedImaginaryFrequetions = 1
-    newNode.templateKey = "QMMM_opt_mopac"
-    newNode.additionalKeywords = { "ts_search" : "true"}
-    newNode.coordsIn = "coordsIn.crd" 
+    # #ts search
+    # tsSemiEmp = join(currentDir, "ts_search_am1")
+    # newNode = FDynamoNode("tsSearch.f90", tsSemiEmp)
+    # newNode.verification = ["Opt" , "Freq"]
+    # newNode.noOfExcpectedImaginaryFrequetions = 1
+    # newNode.templateKey = "QMMM_opt_mopac"
+    # newNode.additionalKeywords = { "ts_search" : "true"}
+    # newNode.coordsIn = "coordsIn.crd" 
 
     gaussianTime = "72:00:00"
     
-    jobGraph.add_node(tsSemiEmp, data = newNode)
-    jobGraph.add_edge(stepOptDir, tsSemiEmp)
+    # jobGraph.add_node(tsSemiEmp, data = newNode)
+    # jobGraph.add_edge(stepOptDir, tsSemiEmp)
     
-    am1Dir = tsSemiEmp
+    # am1Dir = tsSemiEmp
 
     ########################################################
     currentDir = join(currentDir, "ts_gaussian")
@@ -229,11 +234,11 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     
 
     jobGraph.add_node(currentDir, data = newNode)
-    jobGraph.add_edge(am1Dir, currentDir)
+    jobGraph.add_edge(stepOptDir, currentDir)
     
     ########################################################
 
-    newDir = join(am1Dir, "irc_reverse")
+    newDir = join(stepOptDir, "irc_reverse")
     newNode = FDynamoNode("scan.f90", newDir)
     newNode.verification = ["SP"]
     newNode.templateKey = "QMMM_scan1D_mopac"
@@ -245,7 +250,7 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     
 
     jobGraph.add_node(newDir, data = newNode)
-    jobGraph.add_edge(am1Dir, newDir)
+    jobGraph.add_edge(stepOptDir, newDir)
 
     ########################################################
     preOptDir = join(newDir, "preOpt")
@@ -307,7 +312,7 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
 
     ########################################################
 
-    newDir = join(am1Dir, "irc_forward")
+    newDir = join(stepOptDir, "irc_forward")
     newNode = FDynamoNode("scan.f90", newDir)
     newNode.verification = ["SP"]
     newNode.templateKey = "QMMM_scan1D_mopac"
@@ -318,7 +323,7 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     newNode.coordsOut = "seed.+15"
     
     jobGraph.add_node(newDir, data = newNode)
-    jobGraph.add_edge(am1Dir, newDir)
+    jobGraph.add_edge(stepOptDir, newDir)
     
     ########################################################
 
@@ -355,7 +360,7 @@ def addTSsearch (jobGraph, rootDir, currentDir, baseData, initialGeom, index, me
     
     ########################################################
     
-    optDirGaussian = join(optDir, "optGaussian")
+    optDirGaussian = join(newDir, "optGaussian")
 
     if not isdir(optDirGaussian):
         makedirs(optDirGaussian)

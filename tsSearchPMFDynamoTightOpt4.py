@@ -40,7 +40,7 @@ def rewriteFlexibleSeleFile( original ):
     
     return corrected
 
-def generateTSsearchDynamoPMF(compFile):
+def generateTSsearchDynamoPMF(compFile, run_pmf=True):
     jobGraph = nx.DiGraph()
     currentDir = getcwd()
     rootDir = currentDir
@@ -75,6 +75,8 @@ def generateTSsearchDynamoPMF(compFile):
     startDir, currentDir = currentDir, join(currentDir, "ts_search")
     newNode = FDynamoNode("tsSearch.f90", currentDir)
     newNode.verification = ["Opt" , "Freq"]
+    newNode.partition = "plgrid"
+    newNode.time = "3:00:00"
     newNode.noOfExcpectedImaginaryFrequetions = 1
     newNode.templateKey = "QMMM_opt_mopac"
     newNode.additionalKeywords = { "ts_search" : "true" }
@@ -150,14 +152,15 @@ def generateTSsearchDynamoPMF(compFile):
     jobGraph.add_node(optDir, data = newNode)
     jobGraph.add_edge( newDir, optDir)
 
-    
-    pmfDir = join( startDir, "PMF" )
-    reverseI = 0
-    forwardI = 0
+    if run_pmf:
+        pmfDir = join( startDir, "PMF" )
+        reverseI = 0
+        forwardI = 0
 
-    whamDir = join(pmfDir, "wham")
-    whamN = WhamNode("wham.py", whamDir, "../*/pmf.dat")
-    jobGraph.add_node(whamDir, data = whamN)
+
+        whamDir = join(pmfDir, "wham")
+        whamN = WhamNode("wham.py", whamDir, "../*/pmf.dat")
+        jobGraph.add_node(whamDir, data = whamN)
 
     ####################### SCAN FROM TS #########################
 
@@ -176,40 +179,41 @@ def generateTSsearchDynamoPMF(compFile):
     jobGraph.add_edge( stepOptDir, reverseScan)
 
 
-    for i in range(15+1):
-        stepDir = join(pmfDir, "pmfRev"+str(reverseI))
-        reverseI += 1
-        
-        newNode = FDynamoNode("pmfStep.f90", stepDir)
-        newNode.verification = ["SP"]
-        newNode.partition = "plgrid"
-        newNode.time = "72:00:00"
-        newNode.templateKey = "QMMM_pmf"
-        newNode.readInitialScanCoord = True
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
-        newNode.anotherCoordsSource = "seed.-"+str(i)
-        newNode.coordsIn = "seed.crd"
-        
-        jobGraph.add_node(stepDir, data = newNode)
-        jobGraph.add_edge( reverseScan, stepDir)
+    if run_pmf:
+        for i in range(15+1):
+            stepDir = join(pmfDir, "pmfRev"+str(reverseI))
+            reverseI += 1
+            
+            newNode = FDynamoNode("pmfStep.f90", stepDir)
+            newNode.verification = ["SP"]
+            newNode.partition = "plgrid"
+            newNode.time = "72:00:00"
+            newNode.templateKey = "QMMM_pmf"
+            newNode.readInitialScanCoord = True
+            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
+            newNode.anotherCoordsSource = "seed.-"+str(i)
+            newNode.coordsIn = "seed.crd"
+            
+            jobGraph.add_node(stepDir, data = newNode)
+            jobGraph.add_edge( reverseScan, stepDir)
 
-        stepDirRestart = stepDir+"_restart"
-        
-        newNode = FDynamoNode("pmfStep.f90", stepDirRestart)
-        newNode.verification = ["SP", "PMF_restart"]
-        newNode.partition = "plgrid"
-        newNode.time = "72:00:00"
-        newNode.copyVelocities = True
-        newNode.movePMFresults = True
-        newNode.templateKey = "QMMM_pmf_restart"
-        newNode.readInitialScanCoord = False #read from parent
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
-        newNode.coordsIn = "seed.crd"
-        
-        jobGraph.add_node(stepDirRestart, data = newNode)
-        jobGraph.add_edge(stepDir, stepDirRestart)
+            stepDirRestart = stepDir+"_restart"
+            
+            newNode = FDynamoNode("pmfStep.f90", stepDirRestart)
+            newNode.verification = ["SP", "PMF_restart"]
+            newNode.partition = "plgrid"
+            newNode.time = "72:00:00"
+            newNode.copyVelocities = True
+            newNode.movePMFresults = True
+            newNode.templateKey = "QMMM_pmf_restart"
+            newNode.readInitialScanCoord = False #read from parent
+            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
+            newNode.coordsIn = "seed.crd"
+            
+            jobGraph.add_node(stepDirRestart, data = newNode)
+            jobGraph.add_edge(stepDir, stepDirRestart)
 
-        jobGraph.add_edge(stepDirRestart, whamDir)
+            jobGraph.add_edge(stepDirRestart, whamDir)
     
     reverseScan2 = join(startDir, "TS1reverseScan2")
     
@@ -225,40 +229,41 @@ def generateTSsearchDynamoPMF(compFile):
     jobGraph.add_node(reverseScan2, data = newNode)
     jobGraph.add_edge( reverseScan, reverseScan2)
 
-    for i in range(1,16+1):
-        stepDir = join(pmfDir, "pmfRev"+str(reverseI))
-        reverseI += 1
-        
-        newNode = FDynamoNode("pmfStep.f90", stepDir)
-        newNode.verification = ["SP"]
-        newNode.partition = "plgrid"
-        newNode.time = "72:00:00"
-        newNode.templateKey = "QMMM_pmf"
-        newNode.readInitialScanCoord = True
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
-        newNode.anotherCoordsSource = "seed.-"+str(i)
-        newNode.coordsIn = "seed.crd"
-        
-        jobGraph.add_node(stepDir, data = newNode)
-        jobGraph.add_edge( reverseScan2, stepDir)
+    if run_pmf:
+        for i in range(1,16+1):
+            stepDir = join(pmfDir, "pmfRev"+str(reverseI))
+            reverseI += 1
+            
+            newNode = FDynamoNode("pmfStep.f90", stepDir)
+            newNode.verification = ["SP"]
+            newNode.partition = "plgrid"
+            newNode.time = "72:00:00"
+            newNode.templateKey = "QMMM_pmf"
+            newNode.readInitialScanCoord = True
+            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
+            newNode.anotherCoordsSource = "seed.-"+str(i)
+            newNode.coordsIn = "seed.crd"
+            
+            jobGraph.add_node(stepDir, data = newNode)
+            jobGraph.add_edge( reverseScan2, stepDir)
 
-        stepDirRestart = stepDir+"_restart"
-        
-        newNode = FDynamoNode("pmfStep.f90", stepDirRestart)
-        newNode.verification = ["SP", "PMF_restart"]
-        newNode.partition = "plgrid"
-        newNode.time = "72:00:00"
-        newNode.copyVelocities = True
-        newNode.movePMFresults = True
-        newNode.templateKey = "QMMM_pmf_restart"
-        newNode.readInitialScanCoord = False #read from parent
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
-        newNode.coordsIn = "seed.crd"
-        
-        jobGraph.add_node(stepDirRestart, data = newNode)
-        jobGraph.add_edge(stepDir, stepDirRestart)
+            stepDirRestart = stepDir+"_restart"
+            
+            newNode = FDynamoNode("pmfStep.f90", stepDirRestart)
+            newNode.verification = ["SP", "PMF_restart"]
+            newNode.partition = "plgrid"
+            newNode.time = "72:00:00"
+            newNode.copyVelocities = True
+            newNode.movePMFresults = True
+            newNode.templateKey = "QMMM_pmf_restart"
+            newNode.readInitialScanCoord = False #read from parent
+            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
+            newNode.coordsIn = "seed.crd"
+            
+            jobGraph.add_node(stepDirRestart, data = newNode)
+            jobGraph.add_edge(stepDir, stepDirRestart)
 
-        jobGraph.add_edge(stepDirRestart, whamDir)
+            jobGraph.add_edge(stepDirRestart, whamDir)
 
     reverseScan3 = join(startDir, "TS1reverseScan3")
     
@@ -273,40 +278,41 @@ def generateTSsearchDynamoPMF(compFile):
     jobGraph.add_node(reverseScan3, data = newNode)
     jobGraph.add_edge( reverseScan2, reverseScan3)
 
-    for i in range(1,11+1):
-        stepDir = join(pmfDir, "pmfRev"+str(reverseI))
-        reverseI += 1
-        
-        newNode = FDynamoNode("pmfStep.f90", stepDir)
-        newNode.verification = ["SP"]
-        newNode.partition = "plgrid"
-        newNode.time = "72:00:00"
-        newNode.templateKey = "QMMM_pmf"
-        newNode.readInitialScanCoord = True
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
-        newNode.anotherCoordsSource = "seed.-"+str(i)
-        newNode.coordsIn = "seed.crd"
-        
-        jobGraph.add_node(stepDir, data = newNode)
-        jobGraph.add_edge( reverseScan3, stepDir)
+    if run_pmf:
+        for i in range(1,11+1):
+            stepDir = join(pmfDir, "pmfRev"+str(reverseI))
+            reverseI += 1
+            
+            newNode = FDynamoNode("pmfStep.f90", stepDir)
+            newNode.verification = ["SP"]
+            newNode.partition = "plgrid"
+            newNode.time = "72:00:00"
+            newNode.templateKey = "QMMM_pmf"
+            newNode.readInitialScanCoord = True
+            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
+            newNode.anotherCoordsSource = "seed.-"+str(i)
+            newNode.coordsIn = "seed.crd"
+            
+            jobGraph.add_node(stepDir, data = newNode)
+            jobGraph.add_edge( reverseScan3, stepDir)
 
-        stepDirRestart = stepDir+"_restart"
-        
-        newNode = FDynamoNode("pmfStep.f90", stepDirRestart)
-        newNode.verification = ["SP", "PMF_restart"]
-        newNode.partition = "plgrid"
-        newNode.time = "72:00:00"
-        newNode.copyVelocities = True
-        newNode.movePMFresults = True
-        newNode.templateKey = "QMMM_pmf_restart"
-        newNode.readInitialScanCoord = False #read from parent
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
-        newNode.coordsIn = "seed.crd"
-        
-        jobGraph.add_node(stepDirRestart, data = newNode)
-        jobGraph.add_edge(stepDir, stepDirRestart)
+            stepDirRestart = stepDir+"_restart"
+            
+            newNode = FDynamoNode("pmfStep.f90", stepDirRestart)
+            newNode.verification = ["SP", "PMF_restart"]
+            newNode.partition = "plgrid"
+            newNode.time = "72:00:00"
+            newNode.copyVelocities = True
+            newNode.movePMFresults = True
+            newNode.templateKey = "QMMM_pmf_restart"
+            newNode.readInitialScanCoord = False #read from parent
+            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
+            newNode.coordsIn = "seed.crd"
+            
+            jobGraph.add_node(stepDirRestart, data = newNode)
+            jobGraph.add_edge(stepDir, stepDirRestart)
 
-        jobGraph.add_edge(stepDirRestart, whamDir)
+            jobGraph.add_edge(stepDirRestart, whamDir)
         
     forwardScan = join(startDir, "TS1forwardScan1")
     
@@ -322,40 +328,41 @@ def generateTSsearchDynamoPMF(compFile):
     jobGraph.add_node(forwardScan, data = newNode)
     jobGraph.add_edge( stepOptDir, forwardScan)
 
-    for i in range(1, 15+1):
-        stepDir = join(pmfDir, "pmfForw"+str(forwardI))
-        forwardI += 1
-        
-        newNode = FDynamoNode("pmfStep.f90", stepDir)
-        newNode.verification = ["SP"]
-        newNode.partition = "plgrid"
-        newNode.time = "72:00:00"
-        newNode.templateKey = "QMMM_pmf"
-        newNode.readInitialScanCoord = True
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
-        newNode.anotherCoordsSource = "seed.+"+str(i)
-        newNode.coordsIn = "seed.crd"
-        
-        jobGraph.add_node(stepDir, data = newNode)
-        jobGraph.add_edge( forwardScan, stepDir)
+    if run_pmf:
+        for i in range(1, 15+1):
+            stepDir = join(pmfDir, "pmfForw"+str(forwardI))
+            forwardI += 1
+            
+            newNode = FDynamoNode("pmfStep.f90", stepDir)
+            newNode.verification = ["SP"]
+            newNode.partition = "plgrid"
+            newNode.time = "72:00:00"
+            newNode.templateKey = "QMMM_pmf"
+            newNode.readInitialScanCoord = True
+            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
+            newNode.anotherCoordsSource = "seed.+"+str(i)
+            newNode.coordsIn = "seed.crd"
+            
+            jobGraph.add_node(stepDir, data = newNode)
+            jobGraph.add_edge( forwardScan, stepDir)
 
-        stepDirRestart = stepDir+"_restart"
-        
-        newNode = FDynamoNode("pmfStep.f90", stepDirRestart)
-        newNode.verification = ["SP", "PMF_restart"]
-        newNode.partition = "plgrid"
-        newNode.time = "72:00:00"
-        newNode.copyVelocities = True
-        newNode.movePMFresults = True
-        newNode.templateKey = "QMMM_pmf_restart"
-        newNode.readInitialScanCoord = False #read from parent
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
-        newNode.coordsIn = "seed.crd"
-        
-        jobGraph.add_node(stepDirRestart, data = newNode)
-        jobGraph.add_edge(stepDir, stepDirRestart)
+            stepDirRestart = stepDir+"_restart"
+            
+            newNode = FDynamoNode("pmfStep.f90", stepDirRestart)
+            newNode.verification = ["SP", "PMF_restart"]
+            newNode.partition = "plgrid"
+            newNode.time = "72:00:00"
+            newNode.copyVelocities = True
+            newNode.movePMFresults = True
+            newNode.templateKey = "QMMM_pmf_restart"
+            newNode.readInitialScanCoord = False #read from parent
+            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
+            newNode.coordsIn = "seed.crd"
+            
+            jobGraph.add_node(stepDirRestart, data = newNode)
+            jobGraph.add_edge(stepDir, stepDirRestart)
 
-        jobGraph.add_edge(stepDirRestart, whamDir)
+            jobGraph.add_edge(stepDirRestart, whamDir)
     
     forwardScan2 = join(startDir, "TS1forwardScan2")
     
@@ -371,40 +378,42 @@ def generateTSsearchDynamoPMF(compFile):
     jobGraph.add_node(forwardScan2, data = newNode)
     jobGraph.add_edge( forwardScan, forwardScan2)
 
-    for i in range(1, 16+1):
-        stepDir = join(pmfDir, "pmfForw"+str(forwardI))
-        forwardI += 1
-        
-        newNode = FDynamoNode("pmfStep.f90", stepDir)
-        newNode.verification = ["SP"]
-        newNode.partition = "plgrid"
-        newNode.time = "72:00:00"
-        newNode.templateKey = "QMMM_pmf"
-        newNode.readInitialScanCoord = True
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
-        newNode.anotherCoordsSource = "seed.+"+str(i)
-        newNode.coordsIn = "seed.crd"
-        
-        jobGraph.add_node(stepDir, data = newNode)
-        jobGraph.add_edge( forwardScan2, stepDir)
 
-        stepDirRestart = stepDir+"_restart"
-        
-        newNode = FDynamoNode("pmfStep.f90", stepDirRestart)
-        newNode.verification = ["SP", "PMF_restart"]
-        newNode.partition = "plgrid"
-        newNode.time = "72:00:00"
-        newNode.copyVelocities = True
-        newNode.movePMFresults = True
-        newNode.templateKey = "QMMM_pmf_restart"
-        newNode.readInitialScanCoord = False #read from parent
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
-        newNode.coordsIn = "seed.crd"
-        
-        jobGraph.add_node(stepDirRestart, data = newNode)
-        jobGraph.add_edge(stepDir, stepDirRestart)
+    if run_pmf:
+        for i in range(1, 16+1):
+            stepDir = join(pmfDir, "pmfForw"+str(forwardI))
+            forwardI += 1
+            
+            newNode = FDynamoNode("pmfStep.f90", stepDir)
+            newNode.verification = ["SP"]
+            newNode.partition = "plgrid"
+            newNode.time = "72:00:00"
+            newNode.templateKey = "QMMM_pmf"
+            newNode.readInitialScanCoord = True
+            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
+            newNode.anotherCoordsSource = "seed.+"+str(i)
+            newNode.coordsIn = "seed.crd"
+            
+            jobGraph.add_node(stepDir, data = newNode)
+            jobGraph.add_edge( forwardScan2, stepDir)
 
-        jobGraph.add_edge(stepDirRestart, whamDir)
+            stepDirRestart = stepDir+"_restart"
+            
+            newNode = FDynamoNode("pmfStep.f90", stepDirRestart)
+            newNode.verification = ["SP", "PMF_restart"]
+            newNode.partition = "plgrid"
+            newNode.time = "72:00:00"
+            newNode.copyVelocities = True
+            newNode.movePMFresults = True
+            newNode.templateKey = "QMMM_pmf_restart"
+            newNode.readInitialScanCoord = False #read from parent
+            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
+            newNode.coordsIn = "seed.crd"
+            
+            jobGraph.add_node(stepDirRestart, data = newNode)
+            jobGraph.add_edge(stepDir, stepDirRestart)
+
+            jobGraph.add_edge(stepDirRestart, whamDir)
 
     forwardScan3 = join(startDir, "TS1forwardScan3")
     
@@ -419,40 +428,41 @@ def generateTSsearchDynamoPMF(compFile):
     jobGraph.add_node(forwardScan3, data = newNode)
     jobGraph.add_edge( forwardScan2, forwardScan3)
 
-    for i in range(1, 11+1):
-        stepDir = join(pmfDir, "pmfForw"+str(forwardI))
-        forwardI += 1
-        
-        newNode = FDynamoNode("pmfStep.f90", stepDir)
-        newNode.verification = ["SP"]
-        newNode.partition = "plgrid"
-        newNode.time = "72:00:00"
-        newNode.templateKey = "QMMM_pmf"
-        newNode.readInitialScanCoord = True
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
-        newNode.anotherCoordsSource = "seed.+"+str(i)
-        newNode.coordsIn = "seed.crd"
-        
-        jobGraph.add_node(stepDir, data = newNode)
-        jobGraph.add_edge( forwardScan3, stepDir)
+    if run_pmf:
+        for i in range(1, 11+1):
+            stepDir = join(pmfDir, "pmfForw"+str(forwardI))
+            forwardI += 1
+            
+            newNode = FDynamoNode("pmfStep.f90", stepDir)
+            newNode.verification = ["SP"]
+            newNode.partition = "plgrid"
+            newNode.time = "72:00:00"
+            newNode.templateKey = "QMMM_pmf"
+            newNode.readInitialScanCoord = True
+            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
+            newNode.anotherCoordsSource = "seed.+"+str(i)
+            newNode.coordsIn = "seed.crd"
+            
+            jobGraph.add_node(stepDir, data = newNode)
+            jobGraph.add_edge( forwardScan3, stepDir)
 
-        stepDirRestart = stepDir+"_restart"
-        
-        newNode = FDynamoNode("pmfStep.f90", stepDirRestart)
-        newNode.verification = ["SP", "PMF_restart"]
-        newNode.partition = "plgrid"
-        newNode.time = "72:00:00"
-        newNode.copyVelocities = True
-        newNode.movePMFresults = True
-        newNode.templateKey = "QMMM_pmf_restart"
-        newNode.readInitialScanCoord = False #read from parent
-        newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
-        newNode.coordsIn = "seed.crd"
-        
-        jobGraph.add_node(stepDirRestart, data = newNode)
-        jobGraph.add_edge(stepDir, stepDirRestart)
+            stepDirRestart = stepDir+"_restart"
+            
+            newNode = FDynamoNode("pmfStep.f90", stepDirRestart)
+            newNode.verification = ["SP", "PMF_restart"]
+            newNode.partition = "plgrid"
+            newNode.time = "72:00:00"
+            newNode.copyVelocities = True
+            newNode.movePMFresults = True
+            newNode.templateKey = "QMMM_pmf_restart"
+            newNode.readInitialScanCoord = False #read from parent
+            newNode.additionalKeywords = {  "coordScanStart" : "" , "definedAtoms" : definedAtoms,  "constraints" : constraints, "pmfSteps" : 20000}
+            newNode.coordsIn = "seed.crd"
+            
+            jobGraph.add_node(stepDirRestart, data = newNode)
+            jobGraph.add_edge(stepDir, stepDirRestart)
 
-        jobGraph.add_edge(stepDirRestart, whamDir)
+            jobGraph.add_edge(stepDirRestart, whamDir)
     
     
     return jobGraph
@@ -464,11 +474,14 @@ if __name__ == "__main__":
         compFile = sys.argv[1]
         currentDir = getcwd()
         
+        run_pmf = True
+        if len(sys.argv) > 2:
+            run_pmf = False
         
         sm = GraphManager()
         graph = sm.isGraphHere(currentDir)
         if not graph:
-            newGraph = generateTSsearchDynamoPMF(compFile)
+            newGraph = generateTSsearchDynamoPMF(compFile, run_pmf)
     
             
             result = sm.addGraph(newGraph, currentDir)

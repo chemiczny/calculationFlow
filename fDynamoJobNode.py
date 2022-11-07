@@ -466,8 +466,9 @@ class FDynamoNode(JobNode):
                 move(pmf_path, join(self.path, "pmf_old.dat"))
 
 
-        if "coordScanStart" in parent.additionalKeywords:
-            self.parent_initial_rc = parent.additionalKeywords["coordScanStart"]
+        if hasattr(parent, "additionalKeywords"):
+            if "coordScanStart" in parent.additionalKeywords:
+                self.parent_initial_rc = parent.additionalKeywords["coordScanStart"]
         #lol
         # if hasattr(self, "copyHessian"):
         #     if self.copyHessian:
@@ -534,7 +535,12 @@ class FDynamoNode(JobNode):
                       "qmSele" : self.qmSele, "flexiblePart" : self.flexiblePart}
         
         formatDict.update(self.additionalKeywords)
+
+        if not "gradientTolerance" in formatDict:
+            formatDict["gradientTolerance"] = "1.0"
         
+        if not "ts_search" in formatDict:
+            formatDict["ts_search"] = "true"
         
         for f2copy in files2process:
             print("Generating from template: ", f2copy)

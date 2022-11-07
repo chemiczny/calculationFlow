@@ -86,7 +86,7 @@ proc writeSubsystem { crdFile subsystemSele currentSubsystemId subsystemName cur
 	foreach residue $allResidues {
 
 		# puts "poczatek"
-		set residueSelect [ atomselect top "residue $residue" frame $frame ]
+		set residueSelect [ atomselect top "residue $residue and ($subsystemSele)" frame $frame ]
 		# puts "po pierwszym selecie"
 		set resname [ lindex [ $residueSelect get resname ] 0 ]
 		set atomsNo [ $residueSelect num ]
@@ -223,22 +223,25 @@ proc writeSequence { seqFile subsystemDict subsystemOrder } {
 	puts $seqFile "END"
 	close $seqFile
 }
+
 package require pbctools
 
 mol new {acmb_keto_wat.prmtop} type {parm7} first 0 last -1 step 1 waitfor 1
 mol addfile {cooled.nc} type {netcdf} first 0 last -1 step 1 waitfor 1 0
+
 
 pbc wrap -center com -centersel "resname MOL" -compound residue -all
 set cell [pbc get -now] 
 
 [ atomselect top "residue 0" ] set resname NGLU
 [ atomselect top "residue 557" ] set resname CLYS
+[ atomselect top "residue 359" ] set resname TYM
 
 [ atomselect top "resname FAD" ] set name { O3' H3T C1' H1' C2' H2' C3' H3' C4' H4' C5' H5'1 H5'2 O4' O2' H2T N6 H61 \
  H62 C6 C5 N7 C8 H8 N9 C4 N3 C2 H2 N1 O5A PA OA1 OA2 OP PB OB1 OB2 O5B C1 H11 H12 C2Y H2X O2 HO2 C3 H3 O3 HO3 C4X H4 O4 \
   HO4 C5X H51 H52 N1X C2X O2X N3X H3X C4Y O4X N10 C10A C4A N5 C5A C9A C9 H9 C8X C7 C6X H6 C7M H7M1 H7M2 H7M3 C8M H8M1 H8M2 H8M3 }
 
-set subsDict [ dict create A "protein" MOL "resname MOL" FAD "resname FAD" WAT "water" IONS {resname "Cl\-"  "Na\+" "CL\-"  "NA\+" } ]
+set subsDict [ dict create A "protein and not (residue 359 and name HH)" MOL "resname MOL" FAD "resname FAD" WAT "water" IONS {resname "Cl\-"  "Na\+" "CL\-"  "NA\+" } ]
 set subsOrder [ list A MOL FAD WAT IONS ]
 
 saveFrameAsCrd "test.crd" 1 $subsDict $subsOrder

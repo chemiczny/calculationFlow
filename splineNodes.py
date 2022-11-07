@@ -59,7 +59,7 @@ class SplineNode(JobNode):
         
         for p in sortedParents:
             parent = graph.nodes[p]["data"]
-            if abs( parent.reactionCoordinate - lastX ) < 0.00001:
+            if abs( parent.reactionCoordinate - lastX ) < 0.001:
                 continue
             lastX = parent.reactionCoordinate
             x.append(parent.reactionCoordinate)
